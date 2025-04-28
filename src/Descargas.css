@@ -1,0 +1,118 @@
+.contenido {
+    flex-grow: 1;
+    padding: 20px;
+    background: white;
+  }
+  
+  .buscador {
+    width: 100%;
+    padding: 8px 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+  }
+  
+  h2 {
+    margin-top: 30px;
+  }
+  
+  .recurso {
+    display: flex;
+    background: #f9f9f9;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    padding: 10px;
+    box-shadow: 0 0 4px rgba(0,0,0,0.1);
+  }
+  
+  .recurso img {
+    width: 60px;
+    height: 60px;
+    margin-right: 15px;
+    border-radius: 8px;
+  }
+  
+  .recurso p {
+    margin: 5px 0;
+  }
+  
+  .acciones {
+    margin-top: 10px;
+  }
+  
+  .acciones button {
+    margin-right: 10px;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 20px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  
+  .regalar {
+    background: gold;
+  }
+  
+  .descargar {
+    background: limegreen;
+    color: white;
+  }
+  
+  .fecha, .fecha-compra {
+    font-size: 0.8em;
+    color: #666;
+  }
+  
+  .ver-todo {
+    display: block;
+    margin-top: 10px;
+    font-weight: bold;
+    text-align: right;
+    text-decoration: none;
+    color: black;
+  }
+  
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #2c2c2c;
+    color: white;
+    padding: 10px 20px;
+    font-family: 'Segoe UI', sans-serif;
+  }
+  
+  .store-name {
+    font-size: 1.5em;
+    font-weight: bold;
+  }
+  
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+  
+  .btn-recargar {
+    background: #9b4dff;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    cursor: pointer;
+  }
+  
+  .btn-recargar:hover {
+    background: #7a3ecc;
+  }
+  
+  .saldo, .username {
+    font-size: 0.95em;
+  }
+  
+  .user-icon {
+    font-size: 1.2em;
+    cursor: pointer;
+  }
+  
