@@ -1,0 +1,139 @@
+/* DetalleProducto.css */
+
+.detalle-producto-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #f5f5f5;
+  }
+  
+  /* Top Bar */
+  .detalle-producto-container .top-bar {
+    background-color: #111;
+    color: white;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .detalle-producto-container .top-info span {
+    margin-left: 1.5rem;
+    font-weight: 500;
+  }
+  
+  /* Main Layout */
+  .detalle-producto-container .contenido-principal {
+    display: flex;
+    flex: 1;
+  }
+  
+  /* Sidebar */
+  .detalle-producto-container .sidebar {
+    width: 200px;
+    background-color: #222;
+    color: white;
+    padding: 1.5rem 1rem;
+  }
+  
+  .detalle-producto-container .sidebar ul {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .detalle-producto-container .sidebar li {
+    padding: 0.7rem;
+    margin: 0.3rem 0;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background 0.3s ease;
+  }
+  
+  .detalle-producto-container .sidebar li:hover {
+    background-color: #333;
+  }
+  
+  /* Product Content */
+  .detalle-producto-container .recomendaciones {
+    flex: 1;
+    padding: 2rem;
+    background-color: #fff;
+    border-left: 1px solid #ddd;
+    border-right: 1px solid #ddd;
+  }
+  
+  .detalle-producto-container .recomendaciones h2 {
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
+  }
+  
+  .detalle-producto-container .recomendaciones img {
+    width: 300px;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  
+  .detalle-producto-container .recomendaciones p {
+    font-size: 1rem;
+    margin: 0.5rem 0;
+  }
+  
+  .detalle-producto-container .recomendaciones button {
+    padding: 0.6rem 1.2rem;
+    font-size: 1rem;
+    margin: 0.5rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  
+  .detalle-producto-container .recomendaciones button:first-child {
+    background-color: #007bff;
+    color: white;
+  }
+  
+  .detalle-producto-container .recomendaciones button:first-child:hover {
+    background-color: #0056b3;
+  }
+  
+  .detalle-producto-container .recomendaciones button:last-child {
+    background-color: crimson;
+    color: white;
+  }
+  
+  .detalle-producto-container .recomendaciones button:last-child:hover {
+    background-color: darkred;
+  }
+  
+  /* Footer */
+  .detalle-producto-container .footer {
+    background-color: #111;
+    color: #fff;
+    text-align: center;
+    padding: 1rem;
+  }
+  
+  .detalle-producto-container .footer .social {
+    margin-top: 0.5rem;
+  }
+  
+  .detalle-producto-container .footer .social img {
+    width: 26px;
+    margin: 0 0.5rem;
+    filter: brightness(0) invert(1);
+    transition: transform 0.3s;
+  }
+  
+  .detalle-producto-container .footer .social img:hover {
+    transform: scale(1.1);
+  }
+  
+  /* Sección derecha opcional */
+  .detalle-producto-container .destacados {
+    width: 200px;
+    background-color: #f5f5f5;
+  }
+  
+  
