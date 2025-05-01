@@ -1,52 +1,41 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { traerOfertas } from './traer_ofertas'; // Importamos la función
 import './CarruselOfertas.css';
 
-const imagenes = [
-  {
-    src: 'https://preview.redd.it/what-is-the-best-ultraman-design-in-your-opinion-v0-7trajy7iwosd1.jpeg?auto=webp&s=04f69f164e5410f8e11d238c39e0c9f2b7a9d96b',
-    alt: 'Ultraman 1',
-  },
-  {
-    src: 'https://pm1.aminoapps.com/7564/815bfb97d7dcadd92f2094f9e19e65d8e4942798r1-572-572v2_00.jpg',
-    alt: 'Ultraman Geed',
-  },
-  {
-    src: 'https://m.media-amazon.com/images/M/MV5BZmU0NWRiYmEtZTJiZS00NDBkLWFlOGEtZWQ1M2M4NmM1OTY2XkEyXkFqcGc@._V1_.jpg',
-    alt: 'Ultraman Tiga',
-  },
-  {
-    src: 'https://preview.redd.it/eheo7vj44wza1.jpg?width=640&crop=smart&auto=webp&s=47b66cbe6198d3c86420775e2eb5770299ca89f8',
-    alt: 'Ultraman Zero',
-  },
-  {
-    src: 'https://i0.wp.com/cultfaction.com/wp-content/uploads/2014/11/ultraman-gaia.jpg?fit=640%2C360&ssl=1',
-    alt: 'Ultraman Gaia',
-  },
-  {
-    src: 'https://www.cstoysjapan.com/cdn/shop/collections/Ultraseven_Alternate_Transform.jpg?v=1469061842',
-    alt: 'Ultraseven',
-  },
-];
-
-const visibles = 3;
-
 export default function CarruselOfertas() {
+  const [ofertas, setOfertas] = useState<any[]>([]);
   const [startIndex, setStartIndex] = useState(0);
+  const visibles = 3;
+
+  useEffect(() => {
+    async function loadOfertas() {
+      const ofertasData = await traerOfertas(); // Llamamos a la función para obtener las ofertas
+      console.log('Ofertas cargadas:', ofertasData);
+      if (Array.isArray(ofertasData)) {  // Verificamos que es un array antes de actualizar el estado
+        setOfertas(ofertasData);
+      } else {
+        console.error('Las ofertas no son un array:', ofertasData);
+      }
+    }
+
+    loadOfertas();
+  }, []);
 
   const next = () => {
-    setStartIndex((prevIndex) => (prevIndex + 1) % imagenes.length);
+    setStartIndex((prevIndex) => (prevIndex + 1) % ofertas.length);
   };
 
   const prev = () => {
     setStartIndex((prevIndex) =>
-      (prevIndex - 1 + imagenes.length) % imagenes.length
+      (prevIndex - 1 + ofertas.length) % ofertas.length
     );
   };
+  console.log(ofertas);
 
   const getVisibleImages = () => {
     return Array.from({ length: visibles }).map((_, i) => {
-      const index = (startIndex + i) % imagenes.length;
-      return imagenes[index];
+      const index = (startIndex + i) % ofertas.length;
+      return ofertas[index];
     });
   };
 
@@ -58,9 +47,9 @@ export default function CarruselOfertas() {
           ←
         </button>
         <div className="ofertas-container">
-          {getVisibleImages().map((img, i) => (
+          {getVisibleImages().map((oferta, i) => (
             <div className="oferta visible" key={i}>
-              <img src={img.src} alt={img.alt} />
+              <img src={oferta?.url_banner} alt={oferta?.nombre} />
             </div>
           ))}
         </div>
