@@ -1,50 +1,161 @@
-#root {
-  max-width: auto;
-  margin: 0 auto;
-  padding: 0;
-  text-align: center;
-  height: 100%;
-  width: 100%;
-  box-sizing: border-box;
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+.topbar {
+  background: #2c2c2c;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 20px;
+  align-items: center;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.topbar-right {
+  display: flex;
+  gap: 15px;
+  align-items: center;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+.btn-recargar {
+  background: #9b4dff;
+  border: none;
+  padding: 5px 10px;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
 }
 
-.card {
-  padding: 2em;
+.container {
+  display: flex;
+  height: 100vh; /* Hace que la página ocupe toda la altura */
 }
 
-.read-the-docs {
-  color: #888;
-}
-.app-container {
-  height: 100%;
+.sidebar {
+  width: 220px;
+  background: #d8d8d8;
+  padding: 20px;
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
+  position: fixed; /* Asegura que esté pegada a la izquierda */
+  top: 0;
+  left: 0;
+  height: 100%; /* Ocupa toda la altura de la pantalla */
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); /* Sombra para darle un poco de profundidad */
+}
+
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar li {
+  margin: 8px 0;
+  cursor: pointer;
+}
+
+.sidebar li.active {
+  font-weight: bold;
+  color: #9b4dff;
+  text-decoration: underline;
+}
+
+.sidebar .section-title {
+  font-weight: bold;
+  margin-top: 20px;
+}
+
+.chat-box {
+  background: black;
+  color: white;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 0.85em;
+}
+
+.main-content {
+  flex: 1;
+  margin-left: 220px; /* Deja espacio para la barra lateral */
+  padding: 30px;
+  background: #f5f5f5;
+  overflow-y: auto; /* Permite scroll si el contenido es muy largo */
+}
+
+.item {
+  display: flex;
+  align-items: flex-start;
+  background: white;
+  padding: 20px; /* Aumentar el padding para hacerlo más grande */
+  margin-bottom: 25px; /* Más espacio entre los rectángulos */
+  border-radius: 12px; /* Esquinas más redondeadas */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Sombra más suave y definida */
+}
+
+.item img {
+  width: 150px; /* Aumentar tamaño de la imagen */
+  height: 150px; /* Aumentar tamaño de la imagen */
+  object-fit: cover; /* Asegura que la imagen mantenga proporciones */
+  margin-right: 20px;
+  border-radius: 8px; /* Esquinas redondeadas */
+}
+
+.item .info {
+  flex: 1;
+}
+
+.item .info h3 {
+  margin: 0;
+  font-size: 1.5em; /* Tamaño más grande para el título */
+  color: #333;
+}
+
+.item .info p {
+  margin: 5px 0;
+  color: #666;
+  font-size: 0.9em;
+}
+
+.item .buttons {
+  margin-top: 15px;
+}
+
+.btn-black {
+  background: black;
+  color: white;
+  border: none;
+  padding: 8px 15px; /* Botones más grandes */
+  border-radius: 5px;
+  margin-right: 10px;
+  cursor: pointer;
+}
+
+.btn-red {
+  background: #a53030;
+  color: white;
+  border: none;
+  padding: 8px 15px; /* Botones más grandes */
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.price {
+  background: #e0e0e0;
+  border-radius: 12px; /* Más redondeado */
+  padding: 20px; /* Más grande */
+  font-weight: bold;
+  width: 80px; /* Rectángulo más grande */
+  height: 80px; /* Rectángulo más grande */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2em; /* Texto más grande */
+}
+
+.social-icons span {
+  margin: 0 10px;
+  font-size: 1.5em;
+  cursor: pointer;
 }

@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import CarruselOfertas from './CarruselOfertas';
-import { traer_Productos } from './traer_Productos';  // Importa la función para obtener productos
+import { traer_Productos } from './traer_Productos';
 import { useState, useEffect } from 'react';
 
 function Bienvenida() {
@@ -9,23 +9,20 @@ function Bienvenida() {
   const [busqueda, setBusqueda] = useState('');
   const navigate = useNavigate();
 
-  // Obtener productos d  e la base de datos al cargar el componente
   useEffect(() => {
     async function fetchProductos() {
       const productosData = await traer_Productos();
       setProductos(productosData);
       setFilteredProductos(productosData);
     }
-    
+
     fetchProductos();
   }, []);
 
-  // Manejar cambio en el campo de búsqueda
   const handleBusqueda = (e) => {
     const query = e.target.value.toLowerCase();
     setBusqueda(query);
 
-    // Filtrar productos por nombre, categoria o subcategoria
     const filtered = productos.filter((producto) => {
       return (
         producto.nombre.toLowerCase().includes(query) ||
@@ -80,7 +77,12 @@ function Bienvenida() {
 
           <div className="cards">
             {filteredProductos.map((producto) => (
-              <div className="card" key={producto.id}>
+              <div
+                className="card"
+                key={producto.id}
+                onClick={() => navigate(`/producto/${producto.id}`)}
+                style={{ cursor: 'pointer' }}
+              >
                 <img src={producto.url_imagen} alt={producto.nombre} />
                 <p>
                   {producto.nombre}

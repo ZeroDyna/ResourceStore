@@ -1,12 +1,15 @@
 import React from 'react';
-import './FormStyles.css'; // Puedes crear un css si quieres estilizarlo
+import { useNavigate } from 'react-router-dom';
+import './FormStyles.css'; 
 
-function Back({ setVista }) {
+function Back() {
+  const navigate = useNavigate();
+
   return (
     <div className="correo-detectado-container">
       <h2>Correo Detectado</h2>
       <p>¡Se detectó tu correo correctamente!</p>
-      <button onClick={() => setVista('Login')}>Volver a Iniciar Sesión</button>
+      <button onClick={() => navigate('/login')}>Volver a Iniciar Sesión</button>
     </div>
   );
 }

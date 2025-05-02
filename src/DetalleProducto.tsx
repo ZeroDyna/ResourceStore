@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from './supabaseClient';
 import './DetalleProducto.css';
-
+import agregarAFavoritos from './agregar_fav';
 function DetalleProducto() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -54,28 +54,46 @@ function DetalleProducto() {
         </aside>
 
         {/* Contenido */}
-        <section className="recomendaciones">
-          <button onClick={() => navigate(-1)} style={{ marginBottom: '1rem' }}>⬅ Volver</button>
+    {/* Contenido */}
+<section className="recomendaciones">
+  <button onClick={() => navigate(-1)} style={{ marginBottom: '1rem' }}>⬅ Volver</button>
 
-          <h2>{producto.nombre}</h2>
-          <img
-            src={producto.url_imagen}
-            alt={producto.nombre}
-            style={{ width: '300px', margin: '1rem 0' }}
-          />
-          <p><strong>Descripción:</strong> {producto.descripcion}</p>
-          <p><strong>Categoría:</strong> {producto.categoria_id}</p>
-          <p><strong>Subcategoría:</strong> {producto.subcategoria_id}</p>
+  <h2>{producto.nombre}</h2>
+  <img
+    src={producto.url_imagen}
+    alt={producto.nombre}
+    style={{ width: '300px', margin: '1rem 0' }}
+  />
+  <p><strong>Descripción:</strong> {producto.descripcion}</p>
+  <p><strong>Categoría:</strong> {producto.categoria_id}</p>
+  <p><strong>Subcategoría:</strong> {producto.subcategoria_id}</p>
 
-          <div style={{ marginTop: '1.5rem' }}>
-            <button onClick={() => alert('Añadido al carrito')} style={{ marginRight: '1rem' }}>
-              🛒 Añadir al carrito
-            </button>
-            <button onClick={() => alert('Añadido a favoritos')}>
-              ❤️ Añadir a favoritos
-            </button>
-          </div>
-        </section>
+  <div style={{ marginTop: '1.5rem' }}>
+    <button onClick={() => alert('Añadido al carrito')} style={{ marginRight: '1rem' }}>
+      🛒 Añadir al carrito
+    </button>
+
+    <button
+  onClick={async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      alert('Debes iniciar sesión');
+      return;
+    }
+
+    console.log('🔍 user:', user);
+
+    await agregarAFavoritos(producto.id, user.id);
+
+  }}
+  style={{ marginRight: '1rem' }}
+>
+  ❤️ Agregar a Favoritos
+</button>
+
+  </div>
+</section>
+
 
         {/* Sección derecha vacía o para destacados si deseas agregar */}
         <aside className="destacados"></aside>

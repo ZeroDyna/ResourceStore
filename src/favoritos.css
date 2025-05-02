@@ -29,6 +29,7 @@ body {
 
 .container {
   display: flex;
+  height: 100vh; /* Hace que la página ocupe toda la altura */
 }
 
 .sidebar {
@@ -38,16 +39,28 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  position: fixed; /* Asegura que esté pegada a la izquierda */
+  top: 0;
+  left: 0;
+  height: 100%; /* Ocupa toda la altura de la pantalla */
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); /* Sombra para darle un poco de profundidad */
 }
 
 .sidebar ul {
   list-style: none;
   padding: 0;
+  margin: 0;
 }
 
 .sidebar li {
   margin: 8px 0;
   cursor: pointer;
+}
+
+.sidebar li.active {
+  font-weight: bold;
+  color: #9b4dff;
+  text-decoration: underline;
 }
 
 .sidebar .section-title {
@@ -65,63 +78,85 @@ body {
 
 .main-content {
   flex: 1;
+  margin-left: 220px; /* Deja espacio para la barra lateral */
   padding: 30px;
   background: #f5f5f5;
+  overflow-y: auto; /* Permite scroll si el contenido es muy largo */
 }
 
 .item {
   display: flex;
   align-items: flex-start;
   background: white;
-  padding: 15px;
-  margin-bottom: 20px;
-  border-radius: 10px;
-  box-shadow: 0 0 5px #ccc;
+  padding: 25px; /* Aumentar el padding para hacerlo más grande */
+  margin-bottom: 30px; /* Más espacio entre los rectángulos */
+  border-radius: 15px; /* Esquinas más redondeadas */
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15); /* Sombra más suave y definida */
+  width: 95%; /* Ocupa casi todo el ancho del contenedor */
+  max-width: 900px; /* Limitar el ancho máximo */
+  margin-left: auto; /* Centrar horizontalmente */
+  margin-right: auto; /* Centrar horizontalmente */
 }
 
 .item img {
-  width: 60px;
-  height: 60px;
-  margin-right: 15px;
+  width: 150px; /* Aumentar tamaño de la imagen */
+  height: 150px; /* Aumentar tamaño de la imagen */
+  object-fit: cover; /* Asegura que la imagen mantenga proporciones */
+  margin-right: 20px;
+  border-radius: 12px; /* Esquinas redondeadas */
 }
 
 .item .info {
   flex: 1;
 }
 
+.item .info h3 {
+  margin: 0;
+  font-size: 1.6em; /* Tamaño más grande para el título */
+  color: #333;
+}
+
+.item .info p {
+  margin: 8px 0;
+  color: #666;
+  font-size: 1em;
+}
+
 .item .buttons {
-  margin-top: 10px;
+  margin-top: 15px;
 }
 
 .btn-black {
   background: black;
   color: white;
   border: none;
-  padding: 6px 10px;
+  padding: 10px 20px; /* Botones más grandes */
   border-radius: 5px;
   margin-right: 10px;
+  cursor: pointer;
 }
 
 .btn-red {
   background: #a53030;
   color: white;
   border: none;
-  padding: 6px 10px;
+  padding: 10px 20px; /* Botones más grandes */
   border-radius: 5px;
+  cursor: pointer;
 }
 
 .price {
-  background: #ccc;
-  border-radius: 50%;
-  padding: 10px;
+  background: #e0e0e0;
+  border-radius: 12px; /* Más redondeado */
+  padding: 20px; /* Más grande */
   font-weight: bold;
-  width: 60px;
-  height: 60px;
+  width: 100px; /* Rectángulo más grande */
+  height: 100px; /* Rectángulo más grande */
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 1.5em; /* Texto más grande */
 }
-
 
 .social-icons span {
   margin: 0 10px;
