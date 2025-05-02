@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react';
 import { supabase } from './supabaseClient';
 import { Session } from '@supabase/supabase-js';
 
-import 'bootstrap/dist/css/bootstrap.min.css';
 import Inicio from './Inicio';
 import LoginForm from './LoginForm';
 import RegisterForm from './RegisterForm';
@@ -47,26 +46,28 @@ function App() {
 
   if (loading) {
     // Mientras se verifica la sesión, puedes mostrar una pantalla de carga
-    return <div>Cargando...</div>;
+    return <div className="loading-screen">Cargando...</div>;
   }
 
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Inicio />} />
-        <Route path="/login" element={<LoginForm />} />
-        <Route path="/registro" element={<RegisterForm />} />
-        <Route path="/correodetectado" element={<Back />} />
-        <Route path="/bienvenida" element={<Bienvenida />} />
-        
-        {/* Rutas protegidas */}
-        <Route path="/favoritos" element={<RutaProtegida element={<Favoritos />} />} />
-        <Route path="/carrito" element={<RutaProtegida element={<Carrito />} />} />
-        <Route path="/descargas" element={<RutaProtegida element={<Descargas />} />} />
+    <div className="app-container">
+      <Router>
+        <Routes>
+          <Route path="/" element={<Inicio />} />
+          <Route path="/login" element={<LoginForm />} />
+          <Route path="/registro" element={<RegisterForm />} />
+          <Route path="/correodetectado" element={<Back />} />
+          <Route path="/bienvenida" element={<Bienvenida />} />
+          
+          {/* Rutas protegidas */}
+          <Route path="/favoritos" element={<RutaProtegida element={<Favoritos />} />} />
+          <Route path="/carrito" element={<RutaProtegida element={<Carrito />} />} />
+          <Route path="/descargas" element={<RutaProtegida element={<Descargas />} />} />
 
-        <Route path="/producto/:id" element={<DetallesProducto />} />
-      </Routes>
-    </Router>
+          <Route path="/producto/:id" element={<DetallesProducto />} />
+        </Routes>
+      </Router>
+    </div>
   );
 }
 
