@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from './supabaseClient';
 import './DetalleProducto.css';
-import { agregarAFavoritos, quitarDeFavoritos, obtenerFavoritos } from './Gestor_Favoritos';
-import { agregarACarrito } from './agregarAlCarrito';
+import { agregarAFavoritos, quitarDeFavoritos } from './Gestor_Favoritos';
+import { agregarACarrito, quitarDeCarrito } from './agregarAlCarrito';
+
 function DetalleProducto() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -31,7 +32,6 @@ function DetalleProducto() {
 
   return (
     <div className="detalle-producto-container">
-      {/* Encabezado */}
       <header className="top-bar">
         <h1>Resources store</h1>
         <div className="top-info">
@@ -41,7 +41,6 @@ function DetalleProducto() {
       </header>
 
       <main className="contenido-principal">
-        {/* Sidebar */}
         <aside className="sidebar">
           <ul>
             <li onClick={() => navigate("/Bienvenida")}>Inicio</li>
@@ -54,67 +53,56 @@ function DetalleProducto() {
           </ul>
         </aside>
 
-        {/* Contenido */}
-    {/* Contenido */}
-<section className="recomendaciones">
-  <button onClick={() => navigate(-1)} style={{ marginBottom: '1rem' }}>⬅ Volver</button>
+        <section className="recomendaciones">
+          <button onClick={() => navigate(-1)} style={{ marginBottom: '1rem' }}>⬅ Volver</button>
 
-  <h2>{producto.nombre}</h2>
-  <img
-    src={producto.url_imagen}
-    alt={producto.nombre}
-    style={{ width: '300px', margin: '1rem 0' }}
-  />
-  <p><strong>Descripción:</strong> {producto.descripcion}</p>
-  <p><strong>Categoría:</strong> {producto.categoria_id}</p>
-  <p><strong>Subcategoría:</strong> {producto.subcategoria_id}</p>
+          <h2>{producto.nombre}</h2>
+          <img
+            src={producto.url_imagen}
+            alt={producto.nombre}
+            style={{ width: '300px', margin: '1rem 0' }}
+          />
+          <p><strong>Descripción:</strong> {producto.descripcion}</p>
+          <p><strong>Categoría:</strong> {producto.categoria_id}</p>
+          <p><strong>Subcategoría:</strong> {producto.subcategoria_id}</p>
 
-  <div style={{ marginTop: '1.5rem' }}>
-  <button
-    onClick={async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      alert('Debes iniciar sesión');
-      return;
-    }
+          <div style={{ marginTop: '1.5rem' }}>
+            <button
+              onClick={async () => {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (!user) {
+                  alert('Debes iniciar sesión');
+                  return;
+                }
 
-    console.log('🔍 user:', user);
+                const mensaje = await agregarACarrito(producto.id, user.id);
+                alert(mensaje);
+              }}
+              style={{ marginRight: '1rem' }}
+            >
+              🛒 Añadir al carrito
+            </button>
 
-    await agregarACarrito(producto.id, user.id);
+            <button
+              onClick={async () => {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (!user) {
+                  alert('Debes iniciar sesión');
+                  return;
+                }
 
-  }}
-  style={{ marginRight: '1rem' }}
->
-      🛒 Añadir al carrito
-    </button>
-
-    <button
-    onClick={async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      alert('Debes iniciar sesión');
-      return;
-    }
-
-    console.log('🔍 user:', user);
-
-    await agregarAFavoritos(producto.id, user.id);
-
-  }}
-  style={{ marginRight: '1rem' }}
->
-  ❤️ Agregar a Favoritos
-</button>
-
-  </div>
-</section>
-
-
-        {/* Sección derecha vacía o para destacados si deseas agregar */}
+                const mensaje = await agregarAFavoritos(producto.id, user.id);
+                alert(mensaje);
+              }}
+              style={{ marginRight: '1rem' }}
+            >
+              ❤️ Agregar a Favoritos
+            </button>
+          </div>
+        </section>
         <aside className="destacados"></aside>
       </main>
 
-      {/* Pie de página */}
       <footer className="footer">
         <span>© 2025 Resources Store</span>
         <div className="social">

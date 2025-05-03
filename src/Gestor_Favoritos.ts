@@ -1,6 +1,5 @@
 import { supabase } from './supabaseClient';
 
-// Función para crear o recuperar un grupo de favoritos de un usuario
 async function obtenerGrupoDeFavoritos(usuarioId: string) {
   try {
     let { data: favoritosExistente, error: errorBuscar } = await supabase
@@ -30,8 +29,7 @@ async function obtenerGrupoDeFavoritos(usuarioId: string) {
   }
 }
 
-// Agregar un producto a favoritos
-export async function agregarAFavoritos(productoId: number, usuarioId: string) {
+export async function agregarAFavoritos(productoId: number, usuarioId: string): Promise<string> {
   try {
     const favoritoId = await obtenerGrupoDeFavoritos(usuarioId);
 
@@ -43,13 +41,12 @@ export async function agregarAFavoritos(productoId: number, usuarioId: string) {
 
     return 'Producto agregado a favoritos con éxito.';
   } catch (error) {
-    console.error('❌ Error al agregar favorito:', error);
-    throw error;
+    console.error('❌ Error al agregar a favoritos:', error);
+    return 'Error al agregar a favoritos. Por favor, intenta de nuevo.';
   }
 }
 
-// Quitar un producto de favoritos
-export async function quitarDeFavoritos(productoId: number, usuarioId: string) {
+export async function quitarDeFavoritos(productoId: number, usuarioId: string): Promise<string> {
   try {
     const { data: detalleData, error: detalleError } = await supabase
       .from('detalle_favorito')
@@ -73,51 +70,6 @@ export async function quitarDeFavoritos(productoId: number, usuarioId: string) {
     return 'Producto eliminado de favoritos con éxito.';
   } catch (error) {
     console.error('❌ Error al quitar favorito:', error);
-    throw error;
-  }
-}
-
-// Obtener lista de productos favoritos
-export async function obtenerFavoritos(usuarioId: string) {
-  try {
-    const { data: favoritosData, error: favoritosError } = await supabase
-      .from('favoritos')
-      .select('id')
-      .eq('usuario_id', usuarioId);
-
-    if (favoritosError || !favoritosData || favoritosData.length === 0) {
-      return [];
-    }
-
-    const favoritoIds = favoritosData.map((fav) => fav.id);
-
-    const { data: detalleFavoritosData, error: detalleFavoritosError } = await supabase
-      .from('detalle_favorito')
-      .select('producto_id')
-      .in('favorito_id', favoritoIds);
-
-    if (detalleFavoritosError || !detalleFavoritosData || detalleFavoritosData.length === 0) {
-      return [];
-    }
-
-    const productosPromises = detalleFavoritosData.map(async (detalle) => {
-      const { data: productoData, error: productoError } = await supabase
-        .from('productos')
-        .select('id, nombre, descripcion, autor, precio, calificacion, url_imagen')
-        .eq('id', detalle.producto_id)
-        .single();
-
-      if (productoError) {
-        console.warn(`⚠️ Error al obtener producto ${detalle.producto_id}:`, productoError);
-        return null;
-      }
-
-      return productoData;
-    });
-
-    return (await Promise.all(productosPromises)).filter(Boolean);
-  } catch (error) {
-    console.error('❌ Error al obtener favoritos:', error);
-    throw error;
+    return 'Error al eliminar de favoritos. Por favor, intenta de nuevo.';
   }
 }
