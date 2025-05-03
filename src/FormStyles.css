@@ -1,55 +1,70 @@
-body {
-    margin: 0;
-    padding: 0;
-    background-image: url('/ruta/tu-fondo-musical.png'); /* Aquí pones la imagen del fondo */
-    background-size: cover;
-    background-repeat: no-repeat;
-    font-family: 'Comic Sans MS', cursive, sans-serif;
-  }
-  
-  .form-container {
-    background-color: rgba(255, 255, 255, 0.2);
-    padding: 20px;
-    border-radius: 10px;
-    width: 300px;
-    margin: 100px auto;
-    text-align: center;
-  }
-  
-  h2 {
-    font-size: 24px;
-    margin-bottom: 20px;
-  }
-  
-  .input-field {
-    width: 90%;
-    padding: 10px;
-    margin: 10px 0;
-    border-radius: 20px;
-    border: none;
-    background-color: #d3d3d3;
-  }
-  
-  .form-button {
-    margin-top: 20px;
-    padding: 10px 20px;
-    border-radius: 20px;
-    border: none;
-    background-color: #3a0ca3;
-    color: white;
-    font-weight: bold;
-    cursor: pointer;
-  }
-  
-  .forgot-password {
-    display: block;
-    margin-top: 10px;
-    color: #3a0ca3;
-    font-size: 14px;
-    text-decoration: none;
-  }
-  
-  .forgot-password:hover {
-    text-decoration: underline;
-  }
-  
+/* Fondo de pantalla */
+.login-background {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-size: cover;
+  background-position: center;
+  text-align: center;
+}
+
+/* Contenedor del formulario */
+.login-container {
+  background-color: rgba(255, 255, 255, 0.9); /* Fondo blanco semitransparente */
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  width: 90%;
+  max-width: 400px;
+  border: 2px solid #5A2D82; /* Borde violeta */
+}
+
+/* Estilo del título */
+.login-container h2 {
+  font-family: 'Arial', sans-serif;
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+/* Campos de entrada */
+.login-container input {
+  width: 90%;
+  padding: 0.8rem;
+  margin: 0.5rem 0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 1rem;
+}
+
+/* Botón */
+.login-container button {
+  margin-top: 1rem;
+  padding: 0.8rem 2rem;
+  background-color: #5A2D82;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  width: 100%;
+}
+
+.login-container button:hover {
+  background-color: #4A226A;
+}
+
+/* Enlace de contraseña olvidada */
+.forgot-password {
+  font-size: 0.9rem;
+  color: #5A2D82;
+  cursor: pointer;
+  margin-top: 0.5rem;
+}
+
+.forgot-password:hover {
+  text-decoration: underline;
+}

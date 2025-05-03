@@ -266,7 +266,7 @@ body {
 }
 .cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); /* tarjetas más pequeñas */
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); /* tarjetas más pequeñas */
   gap: 12px;
   padding: 16px;
   justify-content: center;
@@ -287,7 +287,7 @@ body {
 
 .card img {
   width: 100%;
-  height: 120px; /* sigue destacando la imagen */
+  height: 130px; /* sigue destacando la imagen */
   object-fit: cover;
   border-radius: 6px;
 }

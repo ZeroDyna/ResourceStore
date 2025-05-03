@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from './supabaseClient';
+import fondo from './fondo.jpeg'; // Importación directa de la imagen
 import './FormStyles.css';
 
 function LoginForm() {
@@ -24,24 +25,31 @@ function LoginForm() {
   };
 
   return (
-    <div className="login-container">
-      <h2>¡Bienvenido!</h2>
-      <input
-        type="email"
-        placeholder="Correo electrónico"
-        value={correo}
-        onChange={(e) => setCorreo(e.target.value)}
-        required
-      />
-      <input
-        type="password"
-        placeholder="Contraseña"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        required
-      />
-      <button onClick={handleLogin}>Iniciar Sesión</button>
-      <p>¿No tienes cuenta? <span className="link" onClick={() => navigate('/registro')}>Regístrate aquí</span></p>
+    <div
+      className="login-background"
+      style={{
+        backgroundImage: `url(${fondo})`,
+      }}
+    >
+      <div className="login-container">
+        <h2>Iniciar sesión</h2>
+        <input
+          type="email"
+          placeholder="Usuario"
+          value={correo}
+          onChange={(e) => setCorreo(e.target.value)}
+          required
+        />
+        <input
+          type="password"
+          placeholder="Contraseña"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+        <p className="forgot-password">¿Olvidaste tu contraseña?</p>
+        <button onClick={handleLogin}>Iniciar sesión</button>
+      </div>
     </div>
   );
 }

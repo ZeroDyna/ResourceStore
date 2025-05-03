@@ -7,6 +7,8 @@ function Bienvenida() {
   const [productos, setProductos] = useState([]);
   const [filteredProductos, setFilteredProductos] = useState([]);
   const [busqueda, setBusqueda] = useState('');
+  const [page, setPage] = useState(1); // Página actual
+  const [itemsPerPage, setItemsPerPage] = useState(4); // Cantidad de tarjetas por página
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -30,7 +32,25 @@ function Bienvenida() {
       );
     });
     setFilteredProductos(filtered);
+    setPage(1); // Reiniciar a la primera página cuando se realiza una búsqueda
   };
+
+  const handleItemsPerPageChange = (e) => {
+    setItemsPerPage(Number(e.target.value));
+    setPage(1); // Reiniciar a la primera página cuando cambia la cantidad de tarjetas
+  };
+
+  const totalPages = Math.ceil(filteredProductos.length / itemsPerPage);
+
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setPage(newPage);
+    }
+  };
+
+  // Productos que se mostrarán en la página actual
+  const startIndex = (page - 1) * itemsPerPage;
+  const currentProductos = filteredProductos.slice(startIndex, startIndex + itemsPerPage);
 
   return (
     <div className="principal-container">
@@ -52,7 +72,7 @@ function Bienvenida() {
         {/* Sidebar */}
         <aside className="sidebar">
           <ul>
-            <li onClick={() => navigate("/")}>Inicio</li>
+            <li onClick={() => navigate("/Bienvenida")}>Inicio</li>
             <li onClick={() => navigate("/carrito")}>Carrito</li>
             <li onClick={() => navigate("/descargas")}>Descargas</li>
             <li onClick={() => navigate("/favoritos")}>Favoritos</li>
@@ -75,8 +95,21 @@ function Bienvenida() {
             />
           </div>
 
+          <div className="pagination-controls">
+            <label htmlFor="itemsPerPage">Tarjetas por página:</label>
+            <select
+              id="itemsPerPage"
+              value={itemsPerPage}
+              onChange={handleItemsPerPageChange}
+            >
+              <option value={4}>4</option>
+              <option value={8}>8</option>
+              <option value={12}>12</option>
+            </select>
+          </div>
+
           <div className="cards">
-            {filteredProductos.map((producto) => (
+            {currentProductos.map((producto) => (
               <div
                 className="card"
                 key={producto.id}
@@ -91,6 +124,27 @@ function Bienvenida() {
                 </p>
               </div>
             ))}
+          </div>
+
+          <div className="pagination-buttons">
+            <button onClick={() => handlePageChange(page - 1)} disabled={page === 1}>
+              &lt; {/* Botón de página anterior */}
+            </button>
+            {[...Array(totalPages)].map((_, index) => (
+              <button
+                key={index}
+                className={page === index + 1 ? 'active' : ''}
+                onClick={() => handlePageChange(index + 1)}
+              >
+                {index + 1}
+              </button>
+            ))}
+            <button
+              onClick={() => handlePageChange(page + 1)}
+              disabled={page === totalPages}
+            >
+              &gt; {/* Botón de página siguiente */}
+            </button>
           </div>
         </section>
 

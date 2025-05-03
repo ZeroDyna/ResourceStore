@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from './supabaseClient';
 import './DetalleProducto.css';
-import agregarAFavoritos from './agregar_fav';
+import { agregarAFavoritos, quitarDeFavoritos, obtenerFavoritos } from './Gestor_Favoritos';
+import { agregarACarrito } from './agregarAlCarrito';
 function DetalleProducto() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -43,7 +44,7 @@ function DetalleProducto() {
         {/* Sidebar */}
         <aside className="sidebar">
           <ul>
-            <li onClick={() => navigate("/")}>Inicio</li>
+            <li onClick={() => navigate("/Bienvenida")}>Inicio</li>
             <li onClick={() => navigate("/carrito")}>Carrito</li>
             <li onClick={() => navigate("/descargas")}>Descargas</li>
             <li onClick={() => navigate("/favoritos")}>Favoritos</li>
@@ -69,12 +70,26 @@ function DetalleProducto() {
   <p><strong>Subcategoría:</strong> {producto.subcategoria_id}</p>
 
   <div style={{ marginTop: '1.5rem' }}>
-    <button onClick={() => alert('Añadido al carrito')} style={{ marginRight: '1rem' }}>
+  <button
+    onClick={async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      alert('Debes iniciar sesión');
+      return;
+    }
+
+    console.log('🔍 user:', user);
+
+    await agregarACarrito(producto.id, user.id);
+
+  }}
+  style={{ marginRight: '1rem' }}
+>
       🛒 Añadir al carrito
     </button>
 
     <button
-  onClick={async () => {
+    onClick={async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       alert('Debes iniciar sesión');

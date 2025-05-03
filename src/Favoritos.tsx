@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom"; // Importar useNavigate para la navegación
 import { supabase } from "./supabaseClient";
+import { agregarACarrito } from './agregarAlCarrito';
 import "./Favoritos.css";
 
 export default function Favoritos() {
@@ -105,7 +106,7 @@ export default function Favoritos() {
         <div className="menu">
           <p className="section-title">Navegación</p>
           <ul>
-            <li onClick={() => navigate("/")}>Inicio</li>
+            <li onClick={() => navigate("/Bienvenida")}>Inicio</li>
             <li onClick={() => navigate("/carrito")}>Carrito</li>
             <li onClick={() => navigate("/descargas")}>Descargas</li>
             <li onClick={() => navigate("/favoritos")} className="active">
@@ -141,7 +142,23 @@ export default function Favoritos() {
                 <p>Autor: {producto.autor || "Desconocido"}</p>
                 <p>Precio: ${producto.precio?.toFixed(2)}</p>
                 <div className="buttons">
-                  <button className="btn-black">Añadir al carrito</button>
+                    <button
+                      onClick={async () => {
+                      const { data: { user } } = await supabase.auth.getUser();
+                      if (!user) {
+                        alert('Debes iniciar sesión');
+                        return;
+                      }
+                  
+                      console.log('🔍 user:', user);
+                  
+                      await agregarACarrito(producto.id, user.id);
+                  
+                    }}
+                    style={{ marginRight: '1rem' }}
+                  >
+                        🛒 Añadir al carrito
+                      </button>
                   <button className="btn-red" onClick={() => handleQuitarFavorito(producto.id)}>
                     Quitar de favoritos
                   </button>

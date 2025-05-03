@@ -1,0 +1,50 @@
+/* Fondo de pantalla */
+.inicio-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-size: cover;
+    background-position: center;
+    text-align: center;
+    font-family: 'Arial', sans-serif;
+  }
+  
+  /* Título principal */
+  .inicio-titulo {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #000; /* Cambia según el contraste con el fondo */
+    margin-bottom: 0.5rem;
+  }
+  
+  /* Subtítulo */
+  .inicio-subtitulo {
+    font-size: 1.2rem;
+    color: #444; /* Color del subtítulo */
+    margin-bottom: 2rem;
+  }
+  
+  /* Botones */
+  .inicio-buttons {
+    display: flex;
+    gap: 1rem;
+  }
+  
+  .inicio-boton {
+    padding: 0.8rem 2rem;
+    background-color: #5A2D82; /* Color del botón */
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.2s, background-color 0.3s;
+  }
+  
+  .inicio-boton:hover {
+    transform: scale(1.05);
+    background-color: #4A226A; /* Color del botón al pasar el mouse */
+  }

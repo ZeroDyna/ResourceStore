@@ -1,52 +1,38 @@
-import { supabase } from '../supabaseClient'; // Ajusta según tu proyecto
+import { supabase } from './supabaseClient'; // Ajusta según tu proyecto
 
-async function agregarAlCarrito(productoId, usuarioId) {
-  // 1. Verificar si ya hay un carrito activo
-  const { data: carrito, error: errorCarrito } = await supabase
-    .from('carritos')
-    .select('*')
-    .eq('usuario_id', usuarioId)
-    .order('fecha_actualizacion', { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  let carritoId = carrito?.id;
-
-  // 2. Si no hay carrito, crear uno nuevo
-  if (!carritoId) {
-    const { data: nuevoCarrito, error: errorNuevo } = await supabase
+export async function agregarACarrito(productoId: number, usuarioId: string) {
+  try {
+    // 1. Buscar si ya existe un grupo de favoritos para este usuario
+    let {data: carritoExistente, error: errorBuscar } = await supabase
       .from('carritos')
-      .insert([
-        {
-          usuario_id: usuarioId,
-          fecha_actualizacion: new Date(),
-        },
-      ])
-      .select()
-      .single();
+      .select('id')
+      .eq('usuario_id', usuarioId)
+      .maybeSingle();
+    if (errorBuscar) throw errorBuscar;
+    
+    // 2. Si no existe, crearlo
+    if (!carritoExistente) {
+      const { data: nuevoCarrito, error: errorInsertarCarrito } = await supabase
+        .from('carritos')
+        .insert({ usuario_id: usuarioId })
+        .select()
+        .single();
 
-    if (errorNuevo) {
-      console.error('Error al crear carrito', errorNuevo);
-      return;
+      if (errorInsertarCarrito) throw errorInsertarCarrito;
+
+      carritoExistente = nuevoCarrito;
     }
+    const carritoId = carritoExistente.id;
 
-    carritoId = nuevoCarrito.id;
+    // 3. Insertar en detalle_favorito
+    const { error: errorInsertarDetalle } = await supabase
+      .from('detalle_carrito')
+      .insert([{ carrito_id: carritoId, producto_id: productoId }]);
+
+    if (errorInsertarDetalle) throw errorInsertarDetalle;
+
+    console.log('✅ Producto agregado a carrito correctamente');
+  } catch (error) {
+    console.error('❌ Error al agregar carrito:', error);
   }
-
-  // 3. Agregar producto al detalle_carrito
-  const { error: errorDetalle } = await supabase
-    .from('detalle_carrito')
-    .insert([
-      {
-        carrito_id: carritoId,
-        producto_id: productoId,
-      },
-    ]);
-
-  if (errorDetalle) {
-    console.error('Error al agregar producto al carrito', errorDetalle);
-    return;
-  }
-
-  alert('Producto agregado al carrito');
 }
