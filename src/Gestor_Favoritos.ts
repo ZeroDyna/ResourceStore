@@ -33,43 +33,30 @@ export async function agregarAFavoritos(productoId: number, usuarioId: string): 
   try {
     const favoritoId = await obtenerGrupoDeFavoritos(usuarioId);
 
-    const { error } = await supabase
+    // Verificar si el producto ya está en favoritos
+    const { data: detalleExistente, error: errorBuscarDetalle } = await supabase
+      .from('detalle_favorito')
+      .select('id')
+      .eq('favorito_id', favoritoId)
+      .eq('producto_id', productoId)
+      .maybeSingle();
+
+    if (errorBuscarDetalle) throw errorBuscarDetalle;
+
+    if (detalleExistente) {
+      return 'El producto ya está en favoritos.';
+    }
+
+    // Insertar en detalle_favorito
+    const { error: errorInsertar } = await supabase
       .from('detalle_favorito')
       .insert([{ favorito_id: favoritoId, producto_id: productoId }]);
 
-    if (error) throw error;
+    if (errorInsertar) throw errorInsertar;
 
     return 'Producto agregado a favoritos con éxito.';
   } catch (error) {
     console.error('❌ Error al agregar a favoritos:', error);
     return 'Error al agregar a favoritos. Por favor, intenta de nuevo.';
-  }
-}
-
-export async function quitarDeFavoritos(productoId: number, usuarioId: string): Promise<string> {
-  try {
-    const { data: detalleData, error: detalleError } = await supabase
-      .from('detalle_favorito')
-      .select('id')
-      .eq('producto_id', productoId)
-      .maybeSingle();
-
-    if (detalleError || !detalleData) {
-      throw new Error('No se encontró el detalle favorito para el producto dado.');
-    }
-
-    const detalleFavoritoId = detalleData.id;
-
-    const { error: deleteError } = await supabase
-      .from('detalle_favorito')
-      .delete()
-      .eq('id', detalleFavoritoId);
-
-    if (deleteError) throw deleteError;
-
-    return 'Producto eliminado de favoritos con éxito.';
-  } catch (error) {
-    console.error('❌ Error al quitar favorito:', error);
-    return 'Error al eliminar de favoritos. Por favor, intenta de nuevo.';
   }
 }

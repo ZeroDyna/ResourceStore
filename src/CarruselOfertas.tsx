@@ -1,17 +1,18 @@
-import { useState, useEffect } from 'react';
-import { traerOfertas } from './traer_ofertas'; // Importamos la función
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { traerOfertas } from './traer_ofertas';
 import './CarruselOfertas.css';
 
 export default function CarruselOfertas() {
   const [ofertas, setOfertas] = useState<any[]>([]);
   const [startIndex, setStartIndex] = useState(0);
-  const visibles = 3;
+  const visibles = 3; // Ver 3 ofertas al mismo tiempo
+  const navigate = useNavigate();
 
   useEffect(() => {
     async function loadOfertas() {
-      const ofertasData = await traerOfertas(); // Llamamos a la función para obtener las ofertas
-      console.log('Ofertas cargadas:', ofertasData);
-      if (Array.isArray(ofertasData)) {  // Verificamos que es un array antes de actualizar el estado
+      const ofertasData = await traerOfertas();
+      if (Array.isArray(ofertasData)) {
         setOfertas(ofertasData);
       } else {
         console.error('Las ofertas no son un array:', ofertasData);
@@ -30,13 +31,20 @@ export default function CarruselOfertas() {
       (prevIndex - 1 + ofertas.length) % ofertas.length
     );
   };
-  console.log(ofertas);
 
   const getVisibleImages = () => {
     return Array.from({ length: visibles }).map((_, i) => {
       const index = (startIndex + i) % ofertas.length;
-      return ofertas[index];
+      const oferta = ofertas[index];
+      if (!oferta) {
+        return null; // Evita problemas con ofertas inválidas
+      }
+      return oferta;
     });
+  };
+
+  const handleOfertaClick = (productoId: number) => {
+    navigate(`/producto/${productoId}`);
   };
 
   return (
@@ -47,11 +55,26 @@ export default function CarruselOfertas() {
           ←
         </button>
         <div className="ofertas-container">
-          {getVisibleImages().map((oferta, i) => (
-            <div className="oferta visible" key={i}>
-              <img src={oferta?.url_banner} alt={oferta?.nombre} />
-            </div>
-          ))}
+          {getVisibleImages().map((oferta, i) => {
+            if (!oferta) {
+              return null;
+            }
+            return (
+              <div
+                className={`oferta ${i === 0 ? 'recomendacion' : ''}`} // Clase especial para la tarjeta inicial
+                key={oferta.id}
+                onClick={() => handleOfertaClick(oferta.producto_id)}
+                style={{ cursor: 'pointer' }}
+              >
+                <img
+                  src={oferta?.url_banner || oferta?.producto?.url_imagen || 'https://via.placeholder.com/300'}
+                  alt={oferta?.producto?.nombre || 'Producto'}
+                />
+                <p>{oferta?.producto?.nombre || 'Producto sin nombre'}</p>
+                {i === 0 && <p className="recomendacion-texto">Recomendado</p>}
+              </div>
+            );
+          })}
         </div>
         <button className="arrow right-arrow" onClick={next}>
           →

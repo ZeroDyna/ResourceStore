@@ -1,4 +1,4 @@
-import { supabase } from './supabaseClient'; // Ajusta según tu proyecto
+import { supabase } from './supabaseClient';
 
 export async function agregarACarrito(productoId: number, usuarioId: string): Promise<string> {
   try {
@@ -11,7 +11,7 @@ export async function agregarACarrito(productoId: number, usuarioId: string): Pr
 
     if (errorBuscar) throw errorBuscar;
 
-    // 2. Si no existe, crearlo
+    // 2. Si no existe un carrito, crearlo
     if (!carritoExistente) {
       const { data: nuevoCarrito, error: errorInsertarCarrito } = await supabase
         .from('carritos')
@@ -23,9 +23,24 @@ export async function agregarACarrito(productoId: number, usuarioId: string): Pr
 
       carritoExistente = nuevoCarrito;
     }
+
     const carritoId = carritoExistente.id;
 
-    // 3. Insertar en detalle_carrito
+    // 3. Verificar si el producto ya está en el carrito
+    const { data: detalleExistente, error: errorBuscarDetalle } = await supabase
+      .from('detalle_carrito')
+      .select('id')
+      .eq('carrito_id', carritoId)
+      .eq('producto_id', productoId)
+      .maybeSingle();
+
+    if (errorBuscarDetalle) throw errorBuscarDetalle;
+
+    if (detalleExistente) {
+      return 'El producto ya está en el carrito.';
+    }
+
+    // 4. Insertar en detalle_carrito
     const { error: errorInsertarDetalle } = await supabase
       .from('detalle_carrito')
       .insert([{ carrito_id: carritoId, producto_id: productoId }]);
@@ -36,33 +51,5 @@ export async function agregarACarrito(productoId: number, usuarioId: string): Pr
   } catch (error) {
     console.error('❌ Error al agregar al carrito:', error);
     return 'Error al agregar al carrito. Por favor, intenta de nuevo.';
-  }
-}
-
-export async function quitarDeCarrito(productoId: number, usuarioId: string): Promise<string> {
-  try {
-    const { data: detalleData, error: detalleError } = await supabase
-      .from('detalle_carrito')
-      .select('id')
-      .eq('producto_id', productoId)
-      .maybeSingle();
-
-    if (detalleError || !detalleData) {
-      throw new Error('No se encontró el detalle del carrito para el producto dado.');
-    }
-
-    const detalleCarritoId = detalleData.id;
-
-    const { error: deleteError } = await supabase
-      .from('detalle_carrito')
-      .delete()
-      .eq('id', detalleCarritoId);
-
-    if (deleteError) throw deleteError;
-
-    return 'Producto eliminado del carrito con éxito.';
-  } catch (error) {
-    console.error('❌ Error al quitar del carrito:', error);
-    return 'Error al eliminar del carrito. Por favor, intenta de nuevo.';
   }
 }

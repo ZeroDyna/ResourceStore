@@ -1,14 +1,31 @@
 import { supabase } from './supabaseClient';
 
 export async function traerOfertas() {
-  const { data, error } = await supabase
-    .from('ofertas')
-    .select('url_banner, producto_id');
+  try {
+    const { data, error } = await supabase
+      .from('ofertas')
+      .select(`
+        id,
+        url_banner,
+        producto_id,
+        productos (
+          id,
+          nombre,
+          descripcion,
+          url_imagen,
+          precio
+        )
+      `);
 
-  if (error) {
-    console.error('Error cargando ofertas:', error);
-    return [];  // Siempre retornamos un array vacío si hay error
+    if (error) {
+      console.error('Error cargando ofertas:', error);
+      return [];
+    }
+
+    // Filtramos las ofertas que no tienen producto_id o datos inválidos
+    return data.filter(oferta => oferta && oferta.producto_id && oferta.productos);
+  } catch (err) {
+    console.error('Error inesperado cargando ofertas:', err);
+    return [];
   }
-
-  return data || [];  // Aseguramos que se retorna un array (vacío si no hay data)
 }
