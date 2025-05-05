@@ -22,7 +22,7 @@ function Bienvenida() {
     async function fetchProductos() {
       const productosData = await traer_Productos();
       setProductos(productosData);
-      setFilteredProductos(productosData.slice(0, 1)); // Mostrar solo 1 recomendación al inicio
+      setFilteredProductos(productosData.slice(0, 3)); // Mostrar solo 1 recomendación al inicio
     }
 
     async function fetchCategorias() {
