@@ -193,7 +193,7 @@ function Bienvenida() {
                 <p>{producto.nombre}</p>
                 <div className="botones">
                   <button onClick={() => agregarACarrito(producto.id)} style={{ marginRight: '1rem' }}>
-                    🛒 Añadir al carrito
+                    🛒 
                   </button>
                   <button
                     onClick={async () => {
@@ -208,7 +208,7 @@ function Bienvenida() {
                     }}
                     style={{ marginRight: '1rem' }}
                   >
-                    ❤️ Agregar a Favoritos
+                    ❤️
                   </button>
                 </div>
               </div>

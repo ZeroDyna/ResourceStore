@@ -1,9 +1,16 @@
 import React from "react";
 import { supabase } from "./supabaseClient";
 import { agregarACarrito } from './agregarAlCarrito';
-import { useNavigate, useLocation, useParams, useSearchParams, useNavigationType } from "react-router-dom";
+import {
+  useNavigate,
+  useLocation,
+  useParams,
+  useSearchParams,
+  useNavigationType
+} from "react-router-dom";
 import "./Favoritos.css";
 
+// HOC para pasar hooks a la clase
 function withHooks(Component) {
   return function Wrapper(props) {
     const navigate = useNavigate();
@@ -25,8 +32,31 @@ function withHooks(Component) {
   };
 }
 
-class Favoritos extends React.Component {
-  constructor(props) {
+type Producto = {
+  id: number;
+  nombre: string;
+  descripcion: string;
+  autor?: string;
+  precio: number;
+  calificacion?: number;
+  url_imagen?: string;
+};
+
+type FavoritosProps = {
+  navigate: ReturnType<typeof useNavigate>;
+  location: ReturnType<typeof useLocation>;
+  params: ReturnType<typeof useParams>;
+  searchParams: URLSearchParams;
+  navigationType: ReturnType<typeof useNavigationType>;
+};
+
+type FavoritosState = {
+  favoritos: Producto[];
+  loading: boolean;
+};
+
+class Favoritos extends React.Component<FavoritosProps, FavoritosState> {
+  constructor(props: FavoritosProps) {
     super(props);
     this.state = {
       favoritos: [],
@@ -62,7 +92,7 @@ class Favoritos extends React.Component {
         return;
       }
 
-      const favoritoIds = favoritosData.map((fav) => fav.id);
+      const favoritoIds = favoritosData.map((fav: any) => fav.id);
       const { data: detalleFavoritosData, error: detalleFavoritosError } = await supabase
         .from("detalle_favorito")
         .select("producto_id")
@@ -75,7 +105,7 @@ class Favoritos extends React.Component {
         return;
       }
 
-      const productosPromises = detalleFavoritosData.map(async (detalle) => {
+      const productosPromises = detalleFavoritosData.map(async (detalle: any) => {
         const { data: productoData, error: productoError } = await supabase
           .from("productos")
           .select("id, nombre, descripcion, autor, precio, calificacion, url_imagen")
@@ -90,7 +120,7 @@ class Favoritos extends React.Component {
         return productoData;
       });
 
-      const productosData = (await Promise.all(productosPromises)).filter(Boolean);
+      const productosData = (await Promise.all(productosPromises)).filter(Boolean) as Producto[];
       this.setState({ favoritos: productosData });
     } catch (err) {
       console.error("❌ Error al obtener favoritos:", err);
@@ -99,7 +129,7 @@ class Favoritos extends React.Component {
     }
   };
 
-  handleQuitarFavorito = async (productoId) => {
+  handleQuitarFavorito = async (productoId: number) => {
     try {
       const { data: detalleData, error: detalleError } = await supabase
         .from("detalle_favorito")
@@ -127,7 +157,7 @@ class Favoritos extends React.Component {
     }
   };
 
-  handleAgregarCarrito = async (productoId) => {
+  handleAgregarCarrito = async (productoId: number) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       alert('Debes iniciar sesión');

@@ -240,3 +240,63 @@ select option {
   background-color: #666;
   color: white;
 }
+.contenedor-productos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: center;
+  margin-top: 30px;
+}
+
+.card {
+  width: 180px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 12px;
+  background-color: #fff;
+  box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+}
+
+.card:hover {
+  transform: scale(1.03);
+}
+
+.card img {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.card h2 {
+  font-size: 1rem;
+  margin: 8px 0 4px;
+}
+
+.card p {
+  font-size: 0.85rem;
+  margin: 3px 0;
+}
+
+.card .botones {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+
+.card .botones button {
+  flex: 1;
+  font-size: 0.75rem;
+  padding: 6px;
+  margin: 0 3px;
+  cursor: pointer;
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+.card .botones button:hover {
+  background-color: #ddd;
+}
