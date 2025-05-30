@@ -2,7 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { useState, useEffect } from 'react';
 import { supabase } from './supabaseClient';
 import { Session } from '@supabase/supabase-js';
-
+import IAdministrador from './IAdministrador';
 import Inicio from './Inicio';
 import LoginForm from './LoginForm';
 import RegisterForm from './RegisterForm';
@@ -58,7 +58,7 @@ function App() {
           <Route path="/registro" element={<RegisterForm />} />
           <Route path="/correodetectado" element={<Back />} />
           <Route path="/bienvenida" element={<Bienvenida />} />
-          
+          <Route path="/IAdministrador" element={<IAdministrador />} />
           {/* Rutas protegidas */}
           <Route path="/favoritos" element={<RutaProtegida element={<Favoritos />} />} />
           <Route path="/carrito" element={<RutaProtegida element={<Carrito />} />} />

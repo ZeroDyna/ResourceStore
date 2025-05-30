@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from './supabaseClient';
-import fondo from './fondo.jpeg'; // Importación directa de la imagen
+import fondo from './fondo.jpeg';
 import './FormStyles.css';
+import Iadministrador from './Iadministrador';
+// Si usas contraseñas hasheadas, instala bcryptjs y descomenta esto:
+// import bcrypt from 'bcryptjs';
 
 function LoginForm() {
   const [correo, setCorreo] = useState('');
@@ -10,26 +13,51 @@ function LoginForm() {
   const navigate = useNavigate();
 
   const handleLogin = async () => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: correo,
-      password: password,
-    });
+    // Buscar en administradores
+    const { data: admin, error: adminError } = await supabase
+      .from('administradores')
+      .select('*')
+      .eq('email', correo)
+      .single();
 
-    if (error) {
-      console.error('Error al iniciar sesión:', error.message);
-      alert('Correo o contraseña incorrectos.');
-    } else {
-      console.log('Login exitoso:', data);
-      navigate('/bienvenida'); // Navegar directamente
+    if (admin) {
+      // Si tienes hashes: const passwordOk = await bcrypt.compare(password, admin.contraseña_hash);
+      const passwordOk = password === admin.contraseña_hash;
+      if (passwordOk) {
+        // Guarda sesión si lo deseas
+        sessionStorage.setItem('user_role', 'admin');
+        sessionStorage.setItem('user_email', admin.email);
+        // Redirige al dashboard admin
+        navigate('/IAdministrador');
+        return;
+      }
     }
+
+    // Buscar en users
+    const { data: user, error: userError } = await supabase
+      .from('users') // Cambia por el nombre real de tu tabla de usuarios si es diferente
+      .select('*')
+      .eq('email', correo)
+      .single();
+
+    if (user) {
+      // Si tienes hashes: const passwordOk = await bcrypt.compare(password, user.contraseña_hash);
+      const passwordOk = password === user.contraseña_hash;
+      if (passwordOk) {
+        sessionStorage.setItem('user_role', 'user');
+        sessionStorage.setItem('user_email', user.email);
+        navigate('/bienvenida');
+        return;
+      }
+    }
+
+    alert('Correo o contraseña incorrectos.');
   };
 
   return (
     <div
       className="login-background"
-      style={{
-        backgroundImage: `url(${fondo})`,
-      }}
+      style={{ backgroundImage: `url(${fondo})` }}
     >
       <div className="login-container">
         <h2>Iniciar sesión</h2>

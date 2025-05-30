@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from './supabaseClient';
-import fondo from './fondo.jpeg'; // Importación de la imagen de fondo
+import fondo from './fondo.jpeg';
 import './FormStyles.css';
+// Si quieres hashear contraseñas en el frontend, instala bcryptjs y descomenta esta línea
+// import bcrypt from 'bcryptjs';
 
 function RegisterForm() {
   const [nombre, setNombre] = useState('');
@@ -13,15 +15,19 @@ function RegisterForm() {
   const handleRegistro = async (e) => {
     e.preventDefault();
 
-    const { data, error } = await supabase.auth.signUp({
-      email: correo,
-      password: password,
-      options: {
-        data: {
+    // Si quieres hashear la contraseña en frontend:
+    // const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Registrar usuario en la tabla users (o usuarios)
+    const { data, error } = await supabase
+      .from('users') // Cambia por el nombre de tu tabla si es distinto
+      .insert([
+        {
           nombre: nombre,
-        },
-      },
-    });
+          email: correo,
+          contraseña_hash: password, // o hashedPassword si usas bcrypt
+        }
+      ]);
 
     if (error) {
       console.error('Error al registrar:', error.message);
