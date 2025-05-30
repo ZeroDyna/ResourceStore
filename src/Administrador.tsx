@@ -1,8 +1,9 @@
 import { Usuario } from './Usuario';
-// Importa también las clases necesarias
 import { Categoria } from './Categoria';
-import { Contenido } from './Contenido';
 import { Promocion } from './Promocion';
+import { Gestor_Categoria } from './Gestor_Categoria';
+import { Gestor_Producto } from './Gestor_producto';
+import { Producto } from './Producto';
 
 export class Administrador {
   id: number;
@@ -37,53 +38,45 @@ export class Administrador {
     // Aquí podrías registrar la transacción en un historial si lo deseas
   }
 
-  // 2. Agregar contenido al portal
-  agregarContenido(contenido: Contenido) {
-    // Lógica para agregar el contenido a la base de datos
-  }
-
-  // 3. Dar de baja contenido del portal
-  darDeBajaContenido(contenido: Contenido) {
-    // Lógica para marcar como inactivo o eliminar el contenido
-  }
-
-  // 4. Crear una categoría (puede ser raíz o hija)
-  agregarCategoria(nombre: string, categoriaPadreId?: number | null): Categoria {
-    const nuevaCategoria = new Categoria(
-      Date.now(), // O el id que arroje la base de datos
-      nombre,
-      categoriaPadreId ?? null
-    );
-    // Aquí agregarías la lógica real para guardar en la base de datos
+  // 2. Crear una categoría (usa el gestor)
+  async agregarCategoria(nombre: string, categoriaPadreId?: number | null): Promise<Categoria> {
+    const nuevaCategoria = await Gestor_Categoria.crearCategoria(nombre, categoriaPadreId ?? null);
     return nuevaCategoria;
   }
 
-  // 5. Ingresar promoción
-  ingresarPromocion(promocion: Promocion) {
-    // Lógica para agregar la promoción a la base de datos
+  // 3. Editar una categoría
+  async editarCategoria(id: number, nombre: string, categoriaPadreId?: number | null): Promise<Categoria> {
+    const categoriaEditada = await Gestor_Categoria.editarCategoria(id, nombre, categoriaPadreId ?? null);
+    return categoriaEditada;
   }
 
-  // 6. Listar usuarios (puedes agregar filtros)
-  listarUsuarios(): Usuario[] {
-    // Devuelve todos los usuarios registrados
-    return [];
+  // 4. Eliminar una categoría
+  async eliminarCategoria(id: number): Promise<boolean> {
+    return await Gestor_Categoria.eliminarCategoria(id);
   }
 
-  // 7. Listar contenidos
-  listarContenidos(): Contenido[] {
-    // Devuelve todos los contenidos
-    return [];
+  // 5. Listar categorías
+  async listarCategorias(): Promise<Categoria[]> {
+    return await Gestor_Categoria.listarCategorias();
   }
 
-  // 8. Listar categorías
-  listarCategorias(): Categoria[] {
-    // Devuelve todas las categorías
-    return [];
+  // 6. Crear producto
+  async agregarProducto(producto: Omit<Producto, 'id'>): Promise<Producto> {
+    return await Gestor_Producto.crearProducto(producto);
   }
 
-  // 9. Listar promociones
-  listarPromociones(): Promocion[] {
-    // Devuelve todas las promociones
-    return [];
+  // 7. Editar producto
+  async editarProducto(id: number, cambios: Partial<Omit<Producto, 'id'>>): Promise<Producto> {
+    return await Gestor_Producto.editarProducto(id, cambios);
+  }
+
+  // 8. Eliminar producto
+  async eliminarProducto(id: number): Promise<boolean> {
+    return await Gestor_Producto.eliminarProducto(id);
+  }
+
+  // 9. Listar productos
+  async listarProductos(): Promise<Producto[]> {
+    return await Gestor_Producto.listarProductos();
   }
 }

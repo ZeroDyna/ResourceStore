@@ -6,7 +6,6 @@ import { supabase } from './supabaseClient';
 import { agregarAFavoritos } from './Gestor_Favoritos';
 import './CarruselOfertas.css';
 
-// HOC para usar useNavigate con clase
 function withNavigation(Component: any) {
   return function Wrapper(props: any) {
     const navigate = useNavigate();
@@ -177,9 +176,14 @@ class IAdministrador extends React.Component<IAdministradorProps, IAdministrador
     }
   };
 
-  handleAgregarOferta = () => {
-    this.props.navigate('/admin/ofertas');
-  };
+  // NUEVAS ACCIONES DE ADMIN
+  goToCategorias = () => this.props.navigate('/admin/categorias');
+  goToProductos = () => this.props.navigate('/admin/productos');
+  goToOfertas = () => this.props.navigate('/admin/ofertas');
+  goToUsuarios = () => this.props.navigate('/admin/usuarios');
+  goToVentas = () => this.props.navigate('/admin/ventas');
+  goToBienvenida = () => this.props.navigate('/bienvenida');
+  goToInicioAdmin = () => this.props.navigate('/admin');
 
   setPage = (page: number) => {
     this.setState({ page });
@@ -196,7 +200,6 @@ class IAdministrador extends React.Component<IAdministradorProps, IAdministrador
       page,
       itemsPerPage
     } = this.state;
-    const { navigate } = this.props;
 
     const totalPages = Math.ceil(filteredProductos.length / itemsPerPage);
     const startIndex = (page - 1) * itemsPerPage;
@@ -204,6 +207,7 @@ class IAdministrador extends React.Component<IAdministradorProps, IAdministrador
 
     return (
       <div className="principal-container">
+
         <header className="top-bar">
           <h1>Panel de Administración</h1>
           <div className="top-info">
@@ -211,6 +215,23 @@ class IAdministrador extends React.Component<IAdministradorProps, IAdministrador
           </div>
         </header>
 
+        {/* PANEL DE ACCIONES ADMIN */}
+        <section className="admin-actions" style={{
+          display: "flex",
+          gap: "1rem",
+          flexWrap: "wrap",
+          justifyContent: "center",
+          margin: "1.5rem 0 1rem 0"
+        }}>
+          <button onClick={this.goToCategorias} style={actionBtnStyle}>Gestionar Categorías</button>
+          <button onClick={this.goToProductos} style={actionBtnStyle}>Gestionar Productos</button>
+          <button onClick={this.goToOfertas} style={actionBtnStyle}>Gestionar Ofertas</button>
+          <button onClick={this.goToUsuarios} style={actionBtnStyle}>Gestionar Usuarios</button>
+          <button onClick={this.goToVentas} style={actionBtnStyle}>Gestionar Ventas</button>
+          <button onClick={this.goToBienvenida} style={actionBtnStyle}>Vista Usuario</button>
+        </section>
+
+        {/* ...resto igual... */}
         <section>
           <div style={{ background: '#fff', padding: '1rem', borderRadius: '8px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -224,7 +245,7 @@ class IAdministrador extends React.Component<IAdministradorProps, IAdministrador
                   borderRadius: '4px',
                   cursor: 'pointer'
                 }}
-                onClick={this.handleAgregarOferta}
+                onClick={this.goToOfertas}
               >
                 + Agregar Oferta
               </button>
@@ -236,12 +257,12 @@ class IAdministrador extends React.Component<IAdministradorProps, IAdministrador
         <main className="contenido-principal">
           <aside className="sidebar">
             <ul>
-              <li onClick={() => navigate("/admin")}>Inicio Admin</li>
-              <li onClick={() => navigate("/admin/productos")}>Todos los Productos</li>
-              <li onClick={() => navigate("/admin/usuarios")}>Usuarios</li>
-              <li onClick={() => navigate("/admin/ventas")}>Ventas</li>
-              <li onClick={() => navigate("/admin/ofertas")}>Ofertas</li>
-              <li onClick={() => navigate("/bienvenida")}>Vista Usuario</li>
+              <li onClick={this.goToInicioAdmin}>Inicio Admin</li>
+              <li onClick={this.goToProductos}>Todos los Productos</li>
+              <li onClick={this.goToUsuarios}>Usuarios</li>
+              <li onClick={this.goToVentas}>Ventas</li>
+              <li onClick={this.goToOfertas}>Ofertas</li>
+              <li onClick={this.goToBienvenida}>Vista Usuario</li>
             </ul>
           </aside>
 
@@ -275,7 +296,7 @@ class IAdministrador extends React.Component<IAdministradorProps, IAdministrador
                   <img
                     src={producto.url_imagen}
                     alt={producto.nombre}
-                    onClick={() => navigate(`/admin/producto/${producto.id}`)}
+                    onClick={() => this.props.navigate(`/admin/producto/${producto.id}`)}
                     style={{ cursor: 'pointer' }}
                   />
                   <p>{producto.nombre}</p>
@@ -348,5 +369,18 @@ class IAdministrador extends React.Component<IAdministradorProps, IAdministrador
     );
   }
 }
+
+// Estilos para los botones de acciones administrativas
+const actionBtnStyle: React.CSSProperties = {
+  padding: "0.8rem 1.5rem",
+  background: "#1976d2",
+  color: "#fff",
+  border: "none",
+  borderRadius: "6px",
+  fontWeight: 600,
+  fontSize: "1rem",
+  cursor: "pointer",
+  boxShadow: "0 2px 8px rgba(0,0,0,0.08)"
+};
 
 export default withNavigation(IAdministrador);

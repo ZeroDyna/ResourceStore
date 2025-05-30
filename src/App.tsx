@@ -12,21 +12,26 @@ import Favoritos from './Favoritos';
 import Carrito from './Carrito';
 import Descargas from './Descargas';
 import DetallesProducto from './DetalleProducto';
+import OfertasAdmin from './OfertasAdmin';
+
+// Agrega tus nuevos componentes:
+import AdminProductos from './AdminProductos'; // <--- NUEVO
+import AdminCategorias from './AdminCategorias'; // <--- Si lo tienes
 
 import './App.css';
 
 function App() {
   const [usuario, setUsuario] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true); // Nuevo estado para controlar la carga
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const checkSession = async () => {
-      setLoading(true); // Inicia la carga
+      setLoading(true);
       const { data } = await supabase.auth.getSession();
       if (data?.session) {
         setUsuario(data.session);
       }
-      setLoading(false); // Finaliza la carga
+      setLoading(false);
     };
 
     checkSession();
@@ -45,7 +50,6 @@ function App() {
   };
 
   if (loading) {
-    // Mientras se verifica la sesión, puedes mostrar una pantalla de carga
     return <div className="loading-screen">Cargando...</div>;
   }
 
@@ -59,11 +63,13 @@ function App() {
           <Route path="/correodetectado" element={<Back />} />
           <Route path="/bienvenida" element={<Bienvenida />} />
           <Route path="/IAdministrador" element={<IAdministrador />} />
+          <Route path="/admin/ofertas" element={<OfertasAdmin />} />
+          <Route path="/admin/productos" element={<AdminProductos />} />      {/* <-- NUEVA RUTA */}
+          <Route path="/admin/categorias" element={<AdminCategorias />} />    {/* <-- NUEVA RUTA (si tienes este componente) */}
           {/* Rutas protegidas */}
           <Route path="/favoritos" element={<RutaProtegida element={<Favoritos />} />} />
           <Route path="/carrito" element={<RutaProtegida element={<Carrito />} />} />
           <Route path="/descargas" element={<RutaProtegida element={<Descargas />} />} />
-
           <Route path="/producto/:id" element={<DetallesProducto />} />
         </Routes>
       </Router>

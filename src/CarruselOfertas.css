@@ -300,3 +300,55 @@ select option {
 .card .botones button:hover {
   background-color: #ddd;
 }
+.carrusel-ofertas {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  align-items: center;
+  padding: 1rem;
+}
+
+.oferta-circulo {
+  width: 180px;
+  height: 180px;
+  background-color: #ccc;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  position: relative;
+}
+
+.botones {
+  margin-top: 0.5rem;
+}
+
+.editar {
+  background-color: #3498db;
+  color: white;
+  border: none;
+  margin-right: 5px;
+  padding: 0.3rem 0.7rem;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.eliminar {
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  padding: 0.3rem 0.7rem;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.agregar {
+  background-color: #bbb;
+  justify-content: center;
+}
+
+.agregar-btn {
+  font-size: 2rem;
+  background-colo
