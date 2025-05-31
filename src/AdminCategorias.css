@@ -69,22 +69,19 @@
   justify-content: center;
   margin-top: 22px;
 }
-.admin-add-cat-btn {
-  font-size: 1.1rem;
-  background: #fff;
-  border: 2px solid #222;
-  border-radius: 50px;
-  padding: 16px 36px;
-  color: #222;
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  transition: box-shadow .2s;
-  box-shadow: 0 2px 8px #0002;
-}
-.admin-add-cat-btn:hover {
+.admin-cat-form button {
+  padding: 10px 20px;
+  font-size: 1.05rem;
+  border-radius: 6px;
   background: #222;
   color: #fff;
+  border: none;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.admin-cat-form button:hover {
+  background: #000;
 }
 .admin-cat-form-modal {
   position: fixed;
@@ -97,19 +94,37 @@
 }
 .admin-cat-form {
   background: #fff;
-  padding: 30px;
-  border-radius: 12px;
-  min-width: 320px;
-  max-width: 98vw;
+  padding: 40px;
+  border-radius: 14px;
+  min-width: 380px;
+  max-width: 480px;
+  width: 100%;
   box-shadow: 0 12px 40px #0003;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 18px;
+  font-family: sans-serif;
 }
-.admin-cat-form input, .admin-cat-form select {
-  padding: 8px;
-  border-radius: 4px;
-  border: 1px solid #bbb;
-  font-size: 1rem;
+.admin-cat-form input,
+.admin-cat-form select {
+  padding: 12px 14px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 1.05rem;
+  background-color: #fff;
+  color: #111;
   width: 100%;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.admin-cat-form input::placeholder {
+  color: #666;
+}
+
+.admin-cat-form select {
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg width='14' height='10' viewBox='0 0 14 10' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 10L0.0718 0h13.8564L7 10z' fill='%23666'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 14px 10px;
 }

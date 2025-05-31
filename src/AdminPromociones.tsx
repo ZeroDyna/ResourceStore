@@ -173,6 +173,14 @@ export default function AdminPromociones() {
               placeholder="Fecha de fin"
               type="date"
             />
+            
+            <input
+              name="url_banner"
+              value={form.url_banner}
+              onChange={handleChange}
+              placeholder="URL del banner"
+            />
+
             <label style={{ marginTop: 10 }}>
               <input
                 name="activa"
@@ -183,12 +191,6 @@ export default function AdminPromociones() {
               />
               Activa
             </label>
-            <input
-              name="url_banner"
-              value={form.url_banner}
-              onChange={handleChange}
-              placeholder="URL del banner"
-            />
             <div style={{ marginTop: 12 }}>
               {editando ? (
                 <>
