@@ -225,9 +225,7 @@ class IAdministrador extends React.Component<IAdministradorProps, IAdministrador
         }}>
           <button onClick={this.goToCategorias} style={actionBtnStyle}>Gestionar Categorías</button>
           <button onClick={this.goToProductos} style={actionBtnStyle}>Gestionar Productos</button>
-          <button onClick={this.goToOfertas} style={actionBtnStyle}>Gestionar Ofertas</button>
-          <button onClick={this.goToUsuarios} style={actionBtnStyle}>Gestionar Usuarios</button>
-          <button onClick={this.goToVentas} style={actionBtnStyle}>Gestionar Ventas</button>
+
           <button onClick={this.goToBienvenida} style={actionBtnStyle}>Vista Usuario</button>
         </section>
 
@@ -235,7 +233,7 @@ class IAdministrador extends React.Component<IAdministradorProps, IAdministrador
         <section>
           <div style={{ background: '#fff', padding: '1rem', borderRadius: '8px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2 style={{ color: '#333' }}>Ofertas</h2>
+              
               <button
                 style={{
                   background: '#222',
@@ -247,7 +245,7 @@ class IAdministrador extends React.Component<IAdministradorProps, IAdministrador
                 }}
                 onClick={this.goToOfertas}
               >
-                + Agregar Oferta
+                + Gestionar Oferta
               </button>
             </div>
             <CarruselOfertas />
