@@ -198,7 +198,7 @@ class IAdministrador extends React.Component<IAdministradorProps, IAdministrador
       categoria,
       subcategoria,
       page,
-      itemsPerPage
+      itemsPerPage,
     } = this.state;
 
     const totalPages = Math.ceil(filteredProductos.length / itemsPerPage);
@@ -231,7 +231,7 @@ class IAdministrador extends React.Component<IAdministradorProps, IAdministrador
           <button onClick={this.goToBienvenida} style={actionBtnStyle}>Vista Usuario</button>
         </section>
 
-        {/* ...resto igual... */}
+        {/* Sección de Ofertas */}
         <section>
           <div style={{ background: '#fff', padding: '1rem', borderRadius: '8px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

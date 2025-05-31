@@ -12,11 +12,9 @@ import Favoritos from './Favoritos';
 import Carrito from './Carrito';
 import Descargas from './Descargas';
 import DetallesProducto from './DetalleProducto';
-import OfertasAdmin from './OfertasAdmin';
-
-// Agrega tus nuevos componentes:
-import AdminProductos from './AdminProductos'; // <--- NUEVO
-import AdminCategorias from './AdminCategorias'; // <--- Si lo tienes
+import AdminPromociones from './AdminPromociones'; // Renombrado correctamente
+import AdminProductos from './AdminProductos';
+import AdminCategorias from './AdminCategorias';
 
 import './App.css';
 
@@ -63,9 +61,9 @@ function App() {
           <Route path="/correodetectado" element={<Back />} />
           <Route path="/bienvenida" element={<Bienvenida />} />
           <Route path="/IAdministrador" element={<IAdministrador />} />
-          <Route path="/admin/ofertas" element={<OfertasAdmin />} />
-          <Route path="/admin/productos" element={<AdminProductos />} />      {/* <-- NUEVA RUTA */}
-          <Route path="/admin/categorias" element={<AdminCategorias />} />    {/* <-- NUEVA RUTA (si tienes este componente) */}
+          <Route path="/admin/ofertas" element={<AdminPromociones />} />
+          <Route path="/admin/productos" element={<AdminProductos />} />
+          <Route path="/admin/categorias" element={<AdminCategorias />} />
           {/* Rutas protegidas */}
           <Route path="/favoritos" element={<RutaProtegida element={<Favoritos />} />} />
           <Route path="/carrito" element={<RutaProtegida element={<Carrito />} />} />
