@@ -12,7 +12,7 @@ import Favoritos from './Favoritos';
 import Carrito from './Carrito';
 import Descargas from './Descargas';
 import DetallesProducto from './DetalleProducto';
-import AdminPromociones from './AdminPromociones'; // Renombrado correctamente
+import AdminPromociones from './AdminPromociones';
 import AdminProductos from './AdminProductos';
 import AdminCategorias from './AdminCategorias';
 

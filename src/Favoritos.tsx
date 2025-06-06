@@ -8,7 +8,7 @@ import {
   useSearchParams,
   useNavigationType
 } from "react-router-dom";
-import "./Favoritos.css";
+import "./favoritos.css";
 
 // HOC para pasar hooks a la clase
 function withHooks(Component) {

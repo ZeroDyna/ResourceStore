@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CarruselOfertas from './CarruselOfertas';
-import { traer_Productos } from './traer_Productos';
+import { traer_Productos } from './traer_productos';
 import { supabase } from './supabaseClient';
 import { agregarAFavoritos } from './Gestor_Favoritos';
 import './CarruselOfertas.css';

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from './supabaseClient';
 import fondo from './fondo.jpeg';
 import './FormStyles.css';
-import Iadministrador from './Iadministrador';
+import Iadministrador from './IAdministrador';
 // Si usas contraseñas hasheadas, instala bcryptjs y descomenta esto:
 // import bcrypt from 'bcryptjs';
 
