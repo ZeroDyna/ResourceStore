@@ -7,85 +7,71 @@ import { agregarAFavoritos } from './Gestor_Favoritos';
 import './CarruselOfertas.css';
 
 function Bienvenida() {
-  const [productos, setProductos] = useState([]);
-  const [filteredProductos, setFilteredProductos] = useState([]);
-  const [categorias, setCategorias] = useState([]);
-  const [subcategorias, setSubcategorias] = useState([]);
+  const [productos, setProductos] = useState<any[]>([]);
+  const [filteredProductos, setFilteredProductos] = useState<any[]>([]);
+  const [categorias, setCategorias] = useState<any[]>([]);
+  const [subcategorias, setSubcategorias] = useState<any[]>([]);
   const [busqueda, setBusqueda] = useState('');
   const [categoria, setCategoria] = useState('');
   const [subcategoria, setSubcategoria] = useState('');
   const [page, setPage] = useState(1);
-  const itemsPerPage = 4;
+  const itemsPerPage = 12;
   const navigate = useNavigate();
 
   useEffect(() => {
-    async function fetchProductos() {
+    async function fetchDatos() {
       const productosData = await traer_Productos();
       setProductos(productosData);
-      setFilteredProductos(productosData.slice(0, 3)); // Mostrar solo 1 recomendación al inicio
+      setFilteredProductos(productosData);
+
+      const { data: catData, error: catError } = await supabase.from('categorias').select('*');
+      if (!catError) setCategorias(catData || []);
+
+      const { data: subData, error: subError } = await supabase.from('subcategorias').select('*');
+      if (!subError) setSubcategorias(subData || []);
     }
 
-    async function fetchCategorias() {
-      const { data, error } = await supabase.from('categorias').select('*');
-      if (error) {
-        console.error('Error al obtener categorías:', error);
-      } else {
-        setCategorias(data || []);
-      }
-    }
-
-    async function fetchSubcategorias() {
-      const { data, error } = await supabase.from('subcategorias').select('*');
-      if (error) {
-        console.error('Error al obtener subcategorías:', error);
-      } else {
-        setSubcategorias(data || []);
-      }
-    }
-
-    fetchProductos();
-    fetchCategorias();
-    fetchSubcategorias();
+    fetchDatos();
   }, []);
-
-  const handleBusqueda = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const query = e.target.value.toLowerCase();
-    setBusqueda(query);
-    filtrarProductos(query, categoria, subcategoria);
-  };
-
-  const handleCategoriaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedCategoria = e.target.value;
-    setCategoria(selectedCategoria);
-    filtrarProductos(busqueda, selectedCategoria, subcategoria);
-  };
-
-  const handleSubcategoriaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedSubcategoria = e.target.value;
-    setSubcategoria(selectedSubcategoria);
-    filtrarProductos(busqueda, categoria, selectedSubcategoria);
-  };
 
   const filtrarProductos = (query: string, categoria: string, subcategoria: string) => {
     let filtered = productos;
 
     if (query) {
-      filtered = filtered.filter((producto: any) =>
-        producto.nombre.toLowerCase().includes(query) ||
-        producto.descripcion.toLowerCase().includes(query)
+      filtered = filtered.filter((producto) =>
+        producto.nombre.toLowerCase().includes(query.toLowerCase()) ||
+        producto.descripcion.toLowerCase().includes(query.toLowerCase())
       );
     }
 
     if (categoria) {
-      filtered = filtered.filter((producto: any) => producto.categoria_id == categoria);
+      filtered = filtered.filter((producto) => producto.categoria_id === parseInt(categoria));
     }
 
     if (subcategoria) {
-      filtered = filtered.filter((producto: any) => producto.subcategoria_id == subcategoria);
+      filtered = filtered.filter((producto) => producto.subcategoria_id === parseInt(subcategoria));
     }
 
     setFilteredProductos(filtered);
     setPage(1);
+  };
+
+  const handleBusqueda = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const query = e.target.value;
+    setBusqueda(query);
+    filtrarProductos(query, categoria, subcategoria);
+  };
+
+  const handleCategoriaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selected = e.target.value;
+    setCategoria(selected);
+    filtrarProductos(busqueda, selected, subcategoria);
+  };
+
+  const handleSubcategoriaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selected = e.target.value;
+    setSubcategoria(selected);
+    filtrarProductos(busqueda, categoria, selected);
   };
 
   const totalPages = Math.ceil(filteredProductos.length / itemsPerPage);
@@ -100,36 +86,35 @@ function Bienvenida() {
         return;
       }
 
-      const { data: carritoExistente, error: errorBuscar } = await supabase
+      const { data: carrito, error: errorBuscar } = await supabase
         .from('carritos')
         .select('id')
         .eq('usuario_id', user.id)
         .maybeSingle();
 
-      if (errorBuscar) throw errorBuscar;
+      let carritoId = carrito?.id;
 
-      let carritoId = carritoExistente?.id;
       if (!carritoId) {
-        const { data: nuevoCarrito, error: errorCrear } = await supabase
+        const { data: nuevo, error: errorCrear } = await supabase
           .from('carritos')
           .insert({ usuario_id: user.id })
           .select()
           .single();
 
         if (errorCrear) throw errorCrear;
-        carritoId = nuevoCarrito.id;
+        carritoId = nuevo.id;
       }
 
-      const { error: errorDetalle } = await supabase
+      const { error: errorInsertar } = await supabase
         .from('detalle_carrito')
-        .insert([{ carrito_id: carritoId, producto_id: productoId }]);
+        .insert({ carrito_id: carritoId, producto_id: productoId });
 
-      if (errorDetalle) throw errorDetalle;
+      if (errorInsertar) throw errorInsertar;
 
       alert('Producto agregado al carrito con éxito.');
     } catch (error) {
       console.error('Error al agregar al carrito:', error);
-      alert('Error al agregar al carrito. Por favor, intenta de nuevo.');
+      alert('Error al agregar al carrito.');
     }
   };
 
@@ -162,27 +147,26 @@ function Bienvenida() {
           <div className="filtros busqueda">
             <input
               type="text"
-              id="buscador"
               placeholder="Buscar contenido..."
               value={busqueda}
               onChange={handleBusqueda}
             />
-            <select id="categoria" value={categoria} onChange={handleCategoriaChange}>
+            <select value={categoria} onChange={handleCategoriaChange}>
               <option value="">Todas las Categorías</option>
-              {categorias.map((cat: any) => (
+              {categorias.map((cat) => (
                 <option key={cat.id} value={cat.id}>{cat.nombre}</option>
               ))}
             </select>
-            <select id="subcategoria" value={subcategoria} onChange={handleSubcategoriaChange}>
+            <select value={subcategoria} onChange={handleSubcategoriaChange}>
               <option value="">Todas las Subcategorías</option>
-              {subcategorias.map((subcat: any) => (
-                <option key={subcat.id} value={subcat.id}>{subcat.nombre}</option>
+              {subcategorias.map((sub) => (
+                <option key={sub.id} value={sub.id}>{sub.nombre}</option>
               ))}
             </select>
           </div>
 
           <div className="cards">
-            {currentProductos.map((producto: any) => (
+            {currentProductos.map((producto) => (
               <div className="card" key={producto.id}>
                 <img
                   src={producto.url_imagen}
@@ -192,9 +176,7 @@ function Bienvenida() {
                 />
                 <p>{producto.nombre}</p>
                 <div className="botones">
-                  <button onClick={() => agregarACarrito(producto.id)} style={{ marginRight: '1rem' }}>
-                    🛒 
-                  </button>
+                  <button onClick={() => agregarACarrito(producto.id)} style={{ marginRight: '1rem' }}>🛒</button>
                   <button
                     onClick={async () => {
                       const { data: { user } } = await supabase.auth.getUser();
@@ -202,23 +184,18 @@ function Bienvenida() {
                         alert('Debes iniciar sesión');
                         return;
                       }
-
                       const mensaje = await agregarAFavoritos(producto.id, user.id);
                       alert(mensaje);
                     }}
                     style={{ marginRight: '1rem' }}
-                  >
-                    ❤️
-                  </button>
+                  >❤️</button>
                 </div>
               </div>
             ))}
           </div>
 
           <div className="botones-paginacion">
-            <button onClick={() => setPage(page - 1)} disabled={page === 1}>
-              &lt;
-            </button>
+            <button onClick={() => setPage(page - 1)} disabled={page === 1}>&lt;</button>
             {[...Array(totalPages)].map((_, index) => (
               <button
                 key={index}
@@ -228,9 +205,7 @@ function Bienvenida() {
                 {index + 1}
               </button>
             ))}
-            <button onClick={() => setPage(page + 1)} disabled={page === totalPages}>
-              &gt;
-            </button>
+            <button onClick={() => setPage(page + 1)} disabled={page === totalPages}>&gt;</button>
           </div>
         </section>
 
@@ -241,14 +216,12 @@ function Bienvenida() {
             <li>Video2.AVI</li>
             <li>Video3.MKV</li>
           </ul>
-
           <h4>Imágenes Destacadas</h4>
           <ul>
             <li>Imagen1.PNG</li>
             <li>Imagen2.WEBP</li>
             <li>Imagen3.JPG</li>
           </ul>
-
           <h4>Audios Destacados</h4>
           <ul>
             <li>Audio1.MP3</li>
@@ -262,3 +235,4 @@ function Bienvenida() {
 }
 
 export default Bienvenida;
+

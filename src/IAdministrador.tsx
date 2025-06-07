@@ -176,7 +176,7 @@ class IAdministrador extends React.Component<IAdministradorProps, IAdministrador
     }
   };
 
-  // NUEVAS ACCIONES DE ADMIN
+  // ACCIONES DE NAVEGACIÓN ADMIN
   goToCategorias = () => this.props.navigate('/admin/categorias');
   goToProductos = () => this.props.navigate('/admin/productos');
   goToOfertas = () => this.props.navigate('/admin/ofertas');
@@ -207,7 +207,6 @@ class IAdministrador extends React.Component<IAdministradorProps, IAdministrador
 
     return (
       <div className="principal-container">
-
         <header className="top-bar">
           <h1>Panel de Administración</h1>
           <div className="top-info">
@@ -215,52 +214,17 @@ class IAdministrador extends React.Component<IAdministradorProps, IAdministrador
           </div>
         </header>
 
-        {/* PANEL DE ACCIONES ADMIN */}
-        <section className="admin-actions" style={{
-          display: "flex",
-          gap: "1rem",
-          flexWrap: "wrap",
-          justifyContent: "center",
-          margin: "1.5rem 0 1rem 0"
-        }}>
-          <button onClick={this.goToCategorias} style={actionBtnStyle}>Gestionar Categorías</button>
-          <button onClick={this.goToProductos} style={actionBtnStyle}>Gestionar Productos</button>
-
-          <button onClick={this.goToBienvenida} style={actionBtnStyle}>Vista Usuario</button>
-        </section>
-
-        {/* Sección de Ofertas */}
-        <section>
-          <div style={{ background: '#fff', padding: '1rem', borderRadius: '8px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              
-              <button
-                style={{
-                  background: '#222',
-                  color: '#fff',
-                  border: 'none',
-                  padding: '0.5rem 1rem',
-                  borderRadius: '4px',
-                  cursor: 'pointer'
-                }}
-                onClick={this.goToOfertas}
-              >
-                + Gestionar Oferta
-              </button>
-            </div>
-            <CarruselOfertas />
-          </div>
-        </section>
-
         <main className="contenido-principal">
+          {/* Sidebar profesional con todas las acciones y navegación */}
           <aside className="sidebar">
             <ul>
-              <li onClick={this.goToInicioAdmin}>Inicio Admin</li>
-              <li onClick={this.goToProductos}>Todos los Productos</li>
-              <li onClick={this.goToUsuarios}>Usuarios</li>
-              <li onClick={this.goToVentas}>Ventas</li>
-              <li onClick={this.goToOfertas}>Ofertas</li>
-              <li onClick={this.goToBienvenida}>Vista Usuario</li>
+              <li onClick={this.goToInicioAdmin}> Inicio Admin</li>
+              <li onClick={this.goToCategorias}> Gestionar Categorías</li>
+              <li onClick={this.goToProductos}> Gestionar Productos</li>
+              <li onClick={this.goToOfertas}> Gestionar Ofertas</li>
+              <li onClick={this.goToUsuarios}> Gestionar Usuarios</li>
+              <li onClick={this.goToVentas}> Gestionar Ventas</li>
+              <li onClick={this.goToBienvenida}> Vista Usuario</li>
             </ul>
           </aside>
 
@@ -338,6 +302,30 @@ class IAdministrador extends React.Component<IAdministradorProps, IAdministrador
                 &gt;
               </button>
             </div>
+
+            {/* Sección de Ofertas */}
+            <section style={{ marginTop: "2rem" }}>
+              <div style={{ background: '#fff', padding: '1rem', borderRadius: '8px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: "1rem" }}>
+                  <h4 style={{ margin: 0 }}>Ofertas Destacadas</h4>
+                  <button
+                    style={{
+                      background: '#7c3aed',
+                      color: '#fff',
+                      border: 'none',
+                      padding: '0.5rem 1rem',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontWeight: "bold"
+                    }}
+                    onClick={this.goToOfertas}
+                  >
+                    + Gestionar Oferta
+                  </button>
+                </div>
+                <CarruselOfertas />
+              </div>
+            </section>
           </section>
 
           <aside className="destacados">
@@ -367,18 +355,5 @@ class IAdministrador extends React.Component<IAdministradorProps, IAdministrador
     );
   }
 }
-
-// Estilos para los botones de acciones administrativas
-const actionBtnStyle: React.CSSProperties = {
-  padding: "0.8rem 1.5rem",
-  background: "#1976d2",
-  color: "#fff",
-  border: "none",
-  borderRadius: "6px",
-  fontWeight: 600,
-  fontSize: "1rem",
-  cursor: "pointer",
-  boxShadow: "0 2px 8px rgba(0,0,0,0.08)"
-};
 
 export default withNavigation(IAdministrador);
