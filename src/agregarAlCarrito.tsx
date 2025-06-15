@@ -1,52 +1,45 @@
 import { supabase } from './supabaseClient';
 
-export async function agregarACarrito(productoId: number, usuarioId: string): Promise<string> {
+export async function agregarACarrito(productoId: number, usuarioId: number): Promise<string> {
   try {
-    // 1. Buscar si ya existe un carrito para este usuario
-    let { data: carritoExistente, error: errorBuscar } = await supabase
-      .from('carritos')
-      .select('id')
-      .eq('usuario_id', usuarioId)
+    // 1. Verificar si ya existe ese producto en el carrito del usuario
+    const { data: productoEnCarrito, error: errorBuscar } = await supabase
+      .from('carrito')
+      .select('id_carrito')
+      .eq('id_user', usuarioId)
+      .eq('id_contenido', productoId)
       .maybeSingle();
 
-    if (errorBuscar) throw errorBuscar;
-
-    // 2. Si no existe un carrito, crearlo
-    if (!carritoExistente) {
-      const { data: nuevoCarrito, error: errorInsertarCarrito } = await supabase
-        .from('carritos')
-        .insert({ usuario_id: usuarioId })
-        .select()
-        .single();
-
-      if (errorInsertarCarrito) throw errorInsertarCarrito;
-
-      carritoExistente = nuevoCarrito;
+    if (errorBuscar) {
+      console.error('❌ Error al buscar producto en carrito:', errorBuscar);
+      throw errorBuscar;
     }
 
-    const carritoId = carritoExistente.id;
-
-    // 3. Verificar si el producto ya está en el carrito
-    const { data: detalleExistente, error: errorBuscarDetalle } = await supabase
-      .from('detalle_carrito')
-      .select('id')
-      .eq('carrito_id', carritoId)
-      .eq('producto_id', productoId)
-      .maybeSingle();
-
-    if (errorBuscarDetalle) throw errorBuscarDetalle;
-
-    if (detalleExistente) {
+    if (productoEnCarrito) {
       return 'El producto ya está en el carrito.';
     }
 
-    // 4. Insertar en detalle_carrito
-    const { error: errorInsertarDetalle } = await supabase
-      .from('detalle_carrito')
-      .insert([{ carrito_id: carritoId, producto_id: productoId }]);
+    // 2. Insertar nuevo producto en el carrito
+    const insertData = {
+      id_user: usuarioId,
+      id_contenido: productoId,
+      monto_total: 0,
+      monto_a_pagar: 0,
+    };
 
-    if (errorInsertarDetalle) throw errorInsertarDetalle;
+    console.log('📦 Insertando:', insertData);
 
+    const { data, error: errorInsertar } = await supabase
+      .from('carrito')
+      .insert([insertData])
+      .select();
+
+    if (errorInsertar) {
+      console.error('❌ Error al insertar en carrito:', errorInsertar);
+      throw errorInsertar;
+    }
+
+    console.log('✅ Producto insertado en carrito:', data);
     return 'Producto agregado al carrito con éxito.';
   } catch (error) {
     console.error('❌ Error al agregar al carrito:', error);

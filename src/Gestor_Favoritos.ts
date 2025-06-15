@@ -1,11 +1,11 @@
 import { supabase } from './supabaseClient';
 
-async function obtenerGrupoDeFavoritos(usuarioId: string) {
+/*async function obtenerGrupoDeFavoritos(usuarioId: number) {
   try {
     let { data: favoritosExistente, error: errorBuscar } = await supabase
       .from('favoritos')
-      .select('id')
-      .eq('usuario_id', usuarioId)
+      .select('id_favoritos')
+      .eq('id_user', usuarioId)
       .maybeSingle();
 
     if (errorBuscar) throw errorBuscar;
@@ -13,44 +13,43 @@ async function obtenerGrupoDeFavoritos(usuarioId: string) {
     if (!favoritosExistente) {
       const { data: nuevoFavorito, error: errorInsertar } = await supabase
         .from('favoritos')
-        .insert({ usuario_id: usuarioId })
-        .select()
+        .insert({ id_user: usuarioId })
+        .select('id_favoritos')
         .single();
 
       if (errorInsertar) throw errorInsertar;
 
-      return nuevoFavorito.id;
+      return nuevoFavorito.id_favoritos;
     }
 
-    return favoritosExistente.id;
+    return favoritosExistente.id_favoritos;
   } catch (error) {
     console.error('❌ Error al obtener grupo de favoritos:', error);
     throw error;
   }
-}
+}*/
 
-export async function agregarAFavoritos(productoId: number, usuarioId: string): Promise<string> {
+
+export async function agregarAFavoritos(productoId: number, usuarioId: number): Promise<string> {
   try {
-    const favoritoId = await obtenerGrupoDeFavoritos(usuarioId);
-
-    // Verificar si el producto ya está en favoritos
-    const { data: detalleExistente, error: errorBuscarDetalle } = await supabase
-      .from('detalle_favorito')
-      .select('id')
-      .eq('favorito_id', favoritoId)
-      .eq('producto_id', productoId)
+    // Verificar si el producto ya está en favoritos para ese usuario
+    const { data: favoritoExistente, error: errorBuscar } = await supabase
+      .from('favoritos')
+      .select('id_favoritos')
+      .eq('id_user', usuarioId)
+      .eq('id_contenido', productoId)
       .maybeSingle();
 
-    if (errorBuscarDetalle) throw errorBuscarDetalle;
+    if (errorBuscar) throw errorBuscar;
 
-    if (detalleExistente) {
+    if (favoritoExistente) {
       return 'El producto ya está en favoritos.';
     }
 
-    // Insertar en detalle_favorito
+    // Insertar nuevo favorito
     const { error: errorInsertar } = await supabase
-      .from('detalle_favorito')
-      .insert([{ favorito_id: favoritoId, producto_id: productoId }]);
+      .from('favoritos')
+      .insert([{ id_user: usuarioId, id_contenido: productoId }]);
 
     if (errorInsertar) throw errorInsertar;
 

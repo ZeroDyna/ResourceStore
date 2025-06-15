@@ -83,7 +83,7 @@ function Bienvenida() {
     const email = sessionStorage.getItem('user_email');
     if (!email) return null;
     const { data: usuario } = await supabase
-      .from('usuario')
+      .from('usuario')  
       .select('id_user, nombre_usuario, email, saldo')
       .eq('email', email)
       .maybeSingle();
