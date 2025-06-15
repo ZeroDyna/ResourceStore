@@ -10,6 +10,7 @@ function RegisterForm() {
   const [nombre, setNombre] = useState('');
   const [correo, setCorreo] = useState('');
   const [password, setPassword] = useState('');
+  const [user_name, setUser_name] = useState('');
   const navigate = useNavigate();
 
   const handleRegistro = async (e) => {
@@ -20,12 +21,15 @@ function RegisterForm() {
 
     // Registrar usuario en la tabla users (o usuarios)
     const { data, error } = await supabase
-      .from('users') // Cambia por el nombre de tu tabla si es distinto
+      .from('usuario') // Cambia por el nombre de tu tabla si es distinto
       .insert([
         {
           nombre: nombre,
           email: correo,
-          contraseña_hash: password, // o hashedPassword si usas bcrypt
+          contrasenia: password,
+          nombre_usuario: user_name,
+          estado: true,
+          saldo: 0 // o hashedPassword si usas bcrypt
         }
       ]);
 
@@ -34,7 +38,7 @@ function RegisterForm() {
       alert('Hubo un error: ' + error.message);
     } else {
       console.log('Registro exitoso:', data);
-      navigate('/correo-detectado'); // Redirigir
+      navigate('/bienvenida'); // Redirigir
     }
   };
 
@@ -53,6 +57,13 @@ function RegisterForm() {
             placeholder="Nombre"
             value={nombre}
             onChange={(e) => setNombre(e.target.value)}
+            required
+          />
+          <input
+            type="text"
+            placeholder="Nombre de usuario"
+            value={user_name}
+            onChange={(e) => setUser_name(e.target.value)}
             required
           />
           <input
