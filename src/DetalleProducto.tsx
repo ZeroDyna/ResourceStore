@@ -159,7 +159,7 @@ class DetalleProducto extends React.Component<DetalleProductoProps, DetalleProdu
             <p><strong>Descripción:</strong> {contenido.descripcion || 'No disponible'}</p>
             <p><strong>Autor:</strong> {contenido.autor || 'No disponible'}</p>
             <p><strong>Formato:</strong> {contenido.formato || 'No disponible'}</p>
-            <p><strong>Formato:</strong> {contenido.precio || 'No disponible'}</p>
+            <p><strong>Precio:</strong> {contenido.precio  || 'No disponible'}</p>
 
             <div style={{ marginTop: '1.5rem' }}>
               <button

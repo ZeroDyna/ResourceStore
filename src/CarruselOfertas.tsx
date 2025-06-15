@@ -63,12 +63,13 @@ export default function CarruselOfertas() {
               <div
                 className={`oferta ${i === 0 ? 'recomendacion' : ''}`} // Clase especial para la tarjeta inicial
                 key={oferta.id}
-                onClick={() => handleOfertaClick(oferta.producto_id)}
+                //onClick={() => handleOfertaClick(oferta.contenido_id)}
                 style={{ cursor: 'pointer' }}
               >
                 <img
                   src={oferta?.url_banner || oferta?.contenido?.archivo || 'https://via.placeholder.com/300'}
                   alt={oferta?.contenido?.nombre || 'Producto'}
+                  onClick={() => navigate(`/contenido/${oferta?.contenido?.id_contenido}`)}
                 />
                 <p>{oferta?.contenido?.nombre || 'Producto sin nombre'}</p>
                 {i === 0 && <p className="recomendacion-texto">Recomendado</p>}
