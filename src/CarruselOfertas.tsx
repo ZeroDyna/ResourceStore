@@ -67,10 +67,10 @@ export default function CarruselOfertas() {
                 style={{ cursor: 'pointer' }}
               >
                 <img
-                  src={oferta?.url_banner || oferta?.producto?.url_imagen || 'https://via.placeholder.com/300'}
-                  alt={oferta?.producto?.nombre || 'Producto'}
+                  src={oferta?.url_banner || oferta?.contenido?.archivo || 'https://via.placeholder.com/300'}
+                  alt={oferta?.contenido?.nombre || 'Producto'}
                 />
-                <p>{oferta?.producto?.nombre || 'Producto sin nombre'}</p>
+                <p>{oferta?.contenido?.nombre || 'Producto sin nombre'}</p>
                 {i === 0 && <p className="recomendacion-texto">Recomendado</p>}
               </div>
             );
