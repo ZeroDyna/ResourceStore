@@ -1,11 +1,12 @@
 import React from 'react';
 import { NavigateFunction, useNavigate } from 'react-router-dom';
 import CarruselOfertas from './CarruselOfertas';
-import { traer_Productos } from './traer_productos';
+import { traerContenido } from './traerContenido';
 import { supabase } from './supabaseClient';
 import { agregarAFavoritos } from './Gestor_Favoritos';
 import './CarruselOfertas.css';
 
+// HOC para navegación con react-router v6
 function withNavigation(Component: any) {
   return function Wrapper(props: any) {
     const navigate = useNavigate();
@@ -13,22 +14,26 @@ function withNavigation(Component: any) {
   };
 }
 
-type Producto = {
-  id: number;
+// Tipos ajustados a tu nueva base de datos
+type Contenido = {
+  id_contenido: number;
   nombre: string;
-  descripcion: string;
-  categoria_id?: string;
-  subcategoria_id?: string;
-  url_imagen?: string;
+  autor?: string;
+  archivo?: string;
+  fecha_subida?: string;
+  tipo?: string;
+  formato?: string;
+  id_categoria?: number;
+  // Puedes agregar más campos según la tabla contenido
 };
 
 type Categoria = {
-  id: number;
+  id_categoria: number;
   nombre: string;
 };
 
 type Subcategoria = {
-  id: number;
+  id_categoria: number;
   nombre: string;
 };
 
@@ -37,8 +42,8 @@ type IAdministradorProps = {
 };
 
 type IAdministradorState = {
-  productos: Producto[];
-  filteredProductos: Producto[];
+  contenidos: Contenido[];
+  filteredContenidos: Contenido[];
   categorias: Categoria[];
   subcategorias: Subcategoria[];
   busqueda: string;
@@ -52,8 +57,8 @@ class IAdministrador extends React.Component<IAdministradorProps, IAdministrador
   constructor(props: IAdministradorProps) {
     super(props);
     this.state = {
-      productos: [],
-      filteredProductos: [],
+      contenidos: [],
+      filteredContenidos: [],
       categorias: [],
       subcategorias: [],
       busqueda: '',
@@ -65,18 +70,18 @@ class IAdministrador extends React.Component<IAdministradorProps, IAdministrador
   }
 
   async componentDidMount() {
-    await this.fetchProductos();
+    await this.fetchContenidos();
     await this.fetchCategorias();
     await this.fetchSubcategorias();
   }
 
-  fetchProductos = async () => {
-    const productosData = await traer_Productos();
-    this.setState({ productos: productosData, filteredProductos: productosData });
+  fetchContenidos = async () => {
+    const contenidosData = await traerContenido();
+    this.setState({ contenidos: contenidosData, filteredContenidos: contenidosData });
   };
 
   fetchCategorias = async () => {
-    const { data, error } = await supabase.from('categorias').select('*');
+    const { data, error } = await supabase.from('categorias').select('*').is('id_categoria_padre', null);
     if (error) {
       console.error('Error al obtener categorías:', error);
     } else {
@@ -85,7 +90,8 @@ class IAdministrador extends React.Component<IAdministradorProps, IAdministrador
   };
 
   fetchSubcategorias = async () => {
-    const { data, error } = await supabase.from('subcategorias').select('*');
+    // Subcategorías: aquellas que tienen id_categoria_padre no null
+    const { data, error } = await supabase.from('categorias').select('*').not('id_categoria_padre', 'is', null);
     if (error) {
       console.error('Error al obtener subcategorías:', error);
     } else {
@@ -96,80 +102,82 @@ class IAdministrador extends React.Component<IAdministradorProps, IAdministrador
   handleBusqueda = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value.toLowerCase();
     this.setState({ busqueda: query }, () => {
-      this.filtrarProductos(query, this.state.categoria, this.state.subcategoria);
+      this.filtrarContenidos(query, this.state.categoria, this.state.subcategoria);
     });
   };
 
   handleCategoriaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedCategoria = e.target.value;
     this.setState({ categoria: selectedCategoria }, () => {
-      this.filtrarProductos(this.state.busqueda, selectedCategoria, this.state.subcategoria);
+      this.filtrarContenidos(this.state.busqueda, selectedCategoria, this.state.subcategoria);
     });
   };
 
   handleSubcategoriaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedSubcategoria = e.target.value;
     this.setState({ subcategoria: selectedSubcategoria }, () => {
-      this.filtrarProductos(this.state.busqueda, this.state.categoria, selectedSubcategoria);
+      this.filtrarContenidos(this.state.busqueda, this.state.categoria, selectedSubcategoria);
     });
   };
 
-  filtrarProductos = (query: string, categoria: string, subcategoria: string) => {
-    let filtered = this.state.productos;
+  filtrarContenidos = (query: string, categoria: string, subcategoria: string) => {
+    let filtered = this.state.contenidos;
 
     if (query) {
-      filtered = filtered.filter((producto: Producto) =>
-        producto.nombre.toLowerCase().includes(query) ||
-        producto.descripcion.toLowerCase().includes(query)
+      filtered = filtered.filter((contenido: Contenido) =>
+        contenido.nombre.toLowerCase().includes(query) ||
+        (contenido.autor?.toLowerCase().includes(query) ?? false)
       );
     }
 
     if (categoria) {
-      filtered = filtered.filter((producto: Producto) => producto.categoria_id == categoria);
+      filtered = filtered.filter((contenido: Contenido) => String(contenido.id_categoria) === categoria);
     }
 
     if (subcategoria) {
-      filtered = filtered.filter((producto: Producto) => producto.subcategoria_id == subcategoria);
+      filtered = filtered.filter((contenido: Contenido) => String(contenido.id_categoria) === subcategoria);
     }
 
-    this.setState({ filteredProductos: filtered, page: 1 });
+    this.setState({ filteredContenidos: filtered, page: 1 });
   };
 
-  agregarACarrito = async (productoId: number) => {
+  agregarACarrito = async (id_contenido: number) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      // Busca id_user en sessionStorage
+      const id_user = sessionStorage.getItem('user_id');
+      if (!id_user) {
         alert('Debes iniciar sesión');
         return;
       }
 
+      // Buscar o crear carrito
       const { data: carritoExistente, error: errorBuscar } = await supabase
-        .from('carritos')
-        .select('id')
-        .eq('usuario_id', user.id)
+        .from('carrito')
+        .select('id_carrito')
+        .eq('id_user', id_user)
         .maybeSingle();
 
-      if (errorBuscar) throw errorBuscar;
+      let carritoId = carritoExistente?.id_carrito;
 
-      let carritoId = carritoExistente?.id;
       if (!carritoId) {
         const { data: nuevoCarrito, error: errorCrear } = await supabase
-          .from('carritos')
-          .insert({ usuario_id: user.id })
+          .from('carrito')
+          .insert({ id_user: id_user, monto_total: 0, monto_a_pagar: 0 })
           .select()
           .single();
 
         if (errorCrear) throw errorCrear;
-        carritoId = nuevoCarrito.id;
+        carritoId = nuevoCarrito.id_carrito;
       }
 
+      // Insertar detalle en el carrito
       const { error: errorDetalle } = await supabase
         .from('detalle_carrito')
-        .insert([{ carrito_id: carritoId, producto_id: productoId }]);
+        .insert([{ id_carrito: carritoId, id_contenido }]);
 
       if (errorDetalle) throw errorDetalle;
 
-      alert('Producto agregado al carrito con éxito.');
+      alert('Contenido agregado al carrito con éxito.');
     } catch (error) {
       console.error('Error al agregar al carrito:', error);
       alert('Error al agregar al carrito. Por favor, intenta de nuevo.');
@@ -178,12 +186,12 @@ class IAdministrador extends React.Component<IAdministradorProps, IAdministrador
 
   // ACCIONES DE NAVEGACIÓN ADMIN
   goToCategorias = () => this.props.navigate('/admin/categorias');
-  goToProductos = () => this.props.navigate('/admin/productos');
+  goToContenidos = () => this.props.navigate('/admin/productos'); // o '/admin/contenidos' si tienes esa ruta
   goToOfertas = () => this.props.navigate('/admin/ofertas');
   goToUsuarios = () => this.props.navigate('/admin/usuarios');
   goToVentas = () => this.props.navigate('/admin/ventas');
   goToBienvenida = () => this.props.navigate('/bienvenida');
-  goToInicioAdmin = () => this.props.navigate('/admin');
+  goToInicioAdmin = () => this.props.navigate('/IAdministrador');
 
   setPage = (page: number) => {
     this.setState({ page });
@@ -191,7 +199,7 @@ class IAdministrador extends React.Component<IAdministradorProps, IAdministrador
 
   render() {
     const {
-      filteredProductos,
+      filteredContenidos,
       categorias,
       subcategorias,
       busqueda,
@@ -201,9 +209,9 @@ class IAdministrador extends React.Component<IAdministradorProps, IAdministrador
       itemsPerPage,
     } = this.state;
 
-    const totalPages = Math.ceil(filteredProductos.length / itemsPerPage);
+    const totalPages = Math.ceil(filteredContenidos.length / itemsPerPage);
     const startIndex = (page - 1) * itemsPerPage;
-    const currentProductos = filteredProductos.slice(startIndex, startIndex + itemsPerPage);
+    const currentContenidos = filteredContenidos.slice(startIndex, startIndex + itemsPerPage);
 
     return (
       <div className="principal-container">
@@ -218,18 +226,18 @@ class IAdministrador extends React.Component<IAdministradorProps, IAdministrador
           {/* Sidebar profesional con todas las acciones y navegación */}
           <aside className="sidebar">
             <ul>
-              <li onClick={this.goToInicioAdmin}> Inicio Admin</li>
-              <li onClick={this.goToCategorias}> Gestionar Categorías</li>
-              <li onClick={this.goToProductos}> Gestionar Productos</li>
-              <li onClick={this.goToOfertas}> Gestionar Ofertas</li>
-              <li onClick={this.goToUsuarios}> Gestionar Usuarios</li>
-              <li onClick={this.goToVentas}> Gestionar Ventas</li>
-              <li onClick={this.goToBienvenida}> Vista Usuario</li>
+              <li onClick={this.goToInicioAdmin}>Inicio Admin</li>
+              <li onClick={this.goToCategorias}>Gestionar Categorías</li>
+              <li onClick={this.goToContenidos}>Gestionar Contenidos</li>
+              <li onClick={this.goToOfertas}>Gestionar Ofertas</li>
+              <li onClick={this.goToUsuarios}>Gestionar Usuarios</li>
+              <li onClick={this.goToVentas}>Gestionar Ventas</li>
+              <li onClick={this.goToBienvenida}>Vista Usuario</li>
             </ul>
           </aside>
 
           <section className="recomendaciones">
-            <h3>Explorar Productos</h3>
+            <h3>Explorar Contenidos</h3>
             <div className="filtros busqueda">
               <input
                 type="text"
@@ -241,39 +249,39 @@ class IAdministrador extends React.Component<IAdministradorProps, IAdministrador
               <select id="categoria" value={categoria} onChange={this.handleCategoriaChange}>
                 <option value="">Todas las Categorías</option>
                 {categorias.map((cat: Categoria) => (
-                  <option key={cat.id} value={cat.id}>{cat.nombre}</option>
+                  <option key={cat.id_categoria} value={cat.id_categoria}>{cat.nombre}</option>
                 ))}
               </select>
               <select id="subcategoria" value={subcategoria} onChange={this.handleSubcategoriaChange}>
                 <option value="">Todas las Subcategorías</option>
                 {subcategorias.map((subcat: Subcategoria) => (
-                  <option key={subcat.id} value={subcat.id}>{subcat.nombre}</option>
+                  <option key={subcat.id_categoria} value={subcat.id_categoria}>{subcat.nombre}</option>
                 ))}
               </select>
             </div>
 
             <div className="cards">
-              {currentProductos.map((producto: Producto) => (
-                <div className="card" key={producto.id}>
+              {currentContenidos.map((contenido: Contenido) => (
+                <div className="card" key={contenido.id_contenido}>
                   <img
-                    src={producto.url_imagen}
-                    alt={producto.nombre}
-                    onClick={() => this.props.navigate(`/admin/producto/${producto.id}`)}
+                    src={contenido.archivo || "https://via.placeholder.com/150"}
+                    alt={contenido.nombre}
+                    onClick={() => this.props.navigate(`/admin/contenido/${contenido.id_contenido}`)}
                     style={{ cursor: 'pointer' }}
                   />
-                  <p>{producto.nombre}</p>
+                  <p>{contenido.nombre}</p>
                   <div className="botones">
-                    <button onClick={() => this.agregarACarrito(producto.id)} style={{ marginRight: '1rem' }}>
+                    <button onClick={() => this.agregarACarrito(contenido.id_contenido)} style={{ marginRight: '1rem' }}>
                       🛒 
                     </button>
                     <button
                       onClick={async () => {
-                        const { data: { user } } = await supabase.auth.getUser();
-                        if (!user) {
+                        const id_user = sessionStorage.getItem('user_id');
+                        if (!id_user) {
                           alert('Debes iniciar sesión');
                           return;
                         }
-                        const mensaje = await agregarAFavoritos(producto.id, user.id);
+                        const mensaje = await agregarAFavoritos(contenido.id_contenido, id_user);
                         alert(mensaje);
                       }}
                       style={{ marginRight: '1rem' }}

@@ -1,39 +1,58 @@
 import { supabase } from './supabaseClient';
-import { Promocion } from './Promocion';
 
-// Gestor que usa la tabla "ofertas" como promociones
-export class Gestor_Promocion {
-  static async listarPromociones(): Promise<Promocion[]> {
-    const { data, error } = await supabase.from('ofertas').select('*');
+export interface Promocion {
+  id_promocion: number;
+  id_admin: string;
+  porcentaje: number;
+  descripcion: string;
+  fecha_ini: string;
+  fecha_fin: string;
+  activa: boolean;
+  url_banner: string;
+  id_contenido?: number | null;
+}
+
+export const Gestor_Promocion = {
+  listarPromociones: async (): Promise<Promocion[]> => {
+    const { data, error } = await supabase
+      .from('promociones')
+      .select('*');
     if (error) throw error;
     return data || [];
-  }
+  },
 
-  static async crearPromocion(promocion: Omit<Promocion, 'id' | 'fecha_creacion'>) {
-    // fecha_creacion y id los maneja la DB
-    const { data, error } = await supabase
-      .from('ofertas')
-      .insert([promocion])
-      .select()
-      .single();
+  crearPromocion: async (promo: Omit<Promocion, 'id_promocion'>) => {
+    // Limpia strings vacíos a null
+    const cleanPromo = { ...promo };
+    Object.keys(cleanPromo).forEach(k => {
+      if (cleanPromo[k as keyof typeof cleanPromo] === '') cleanPromo[k as keyof typeof cleanPromo] = null as any;
+    });
+    const { error } = await supabase
+      .from('promociones')
+      .insert([cleanPromo]);
     if (error) throw error;
-    return data;
-  }
+    return true;
+  },
 
-  static async actualizarPromocion(id: number, cambios: Partial<Omit<Promocion, 'id' | 'fecha_creacion'>>) {
-    const { data, error } = await supabase
-      .from('ofertas')
-      .update(cambios)
-      .eq('id', id)
-      .select()
-      .single();
+  actualizarPromocion: async (id_promocion: number, promo: Partial<Omit<Promocion, 'id_promocion'>>) => {
+    const cleanPromo = { ...promo };
+    Object.keys(cleanPromo).forEach(k => {
+      if (cleanPromo[k as keyof typeof cleanPromo] === '') cleanPromo[k as keyof typeof cleanPromo] = null as any;
+    });
+    const { error } = await supabase
+      .from('promociones')
+      .update(cleanPromo)
+      .eq('id_promocion', id_promocion);
     if (error) throw error;
-    return data;
-  }
+    return true;
+  },
 
-  static async eliminarPromocion(id: number) {
-    const { error } = await supabase.from('ofertas').delete().eq('id', id);
+  eliminarPromocion: async (id_promocion: number) => {
+    const { error } = await supabase
+      .from('promociones')
+      .delete()
+      .eq('id_promocion', id_promocion);
     if (error) throw error;
     return true;
   }
-}
+};

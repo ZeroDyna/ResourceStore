@@ -11,7 +11,7 @@ import Bienvenida from './Bienvenida';
 import Favoritos from './Favoritos';
 import Carrito from './Carrito';
 import Descargas from './Descargas';
-import DetallesProducto from './DetalleProducto';
+import DetalleProducto from './DetalleProducto';  // <--- nombre corregido aquí
 import AdminPromociones from './AdminPromociones';
 import AdminProductos from './AdminProductos';
 import AdminCategorias from './AdminCategorias';
@@ -68,7 +68,8 @@ function App() {
           <Route path="/favoritos" element={<RutaProtegida element={<Favoritos />} />} />
           <Route path="/carrito" element={<RutaProtegida element={<Carrito />} />} />
           <Route path="/descargas" element={<RutaProtegida element={<Descargas />} />} />
-          <Route path="/producto/:id" element={<DetallesProducto />} />
+          {/* Ruta para el detalle de contenido */}
+          <Route path="/contenido/:id_contenido" element={<DetalleProducto />} />
         </Routes>
       </Router>
     </div>

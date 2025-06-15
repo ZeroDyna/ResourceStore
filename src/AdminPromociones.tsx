@@ -7,21 +7,18 @@ import './AdminPromociones.css';
 export default function AdminPromociones() {
   const [promociones, setPromociones] = useState<Promocion[]>([]);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState<Omit<Promocion, 'id' | 'fecha_creacion'>>({
-    admin_creador_id: '',
-    descuento: 0,
-    fecha_inicio: '',
+  const [form, setForm] = useState<Omit<Promocion, 'id_promocion'>>({
+    id_admin: '',
+    porcentaje: 0,
+    descripcion: '',
+    fecha_ini: '',
     fecha_fin: '',
-    activa: true,
-    url_banner: '',
+    id_contenido: null,
   });
   const [editando, setEditando] = useState<Promocion | null>(null);
 
   useEffect(() => {
     fetchPromociones();
-    // Asigna el admin_creador_id cada vez que se abre el formulario de creación
-    // (si usas un sistema de auth y quieres guardar el admin actual)
-    // Puedes quitar esto si lo asignas en otro lado
   }, []);
 
   const fetchPromociones = async () => {
@@ -33,34 +30,47 @@ export default function AdminPromociones() {
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target;
-    setForm(prev => ({
-      ...prev,
-      [name]: type === "number"
-        ? Number(value)
-        : type === "checkbox"
-        ? checked
-        : value
-    }));
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value, type } = e.target;
+    if (name === 'id_contenido') {
+      setForm(prev => ({
+        ...prev,
+        id_contenido: value === '' ? null : Number(value),
+      }));
+    } else if (name === 'porcentaje') {
+      setForm(prev => ({
+        ...prev,
+        porcentaje: Number(value)
+      }));
+    } else {
+      setForm(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
   };
 
   const handleAgregar = async () => {
-    // Setea admin_creador_id automáticamente si tienes usuarios autenticados
     let finalForm = { ...form };
-    if (!finalForm.admin_creador_id) {
+    Object.keys(finalForm).forEach(k => {
+      if (finalForm[k as keyof typeof finalForm] === '') {
+        finalForm[k as keyof typeof finalForm] = null as any;
+      }
+    });
+    // Si usas auth, puedes obtener aquí el id del admin autenticado
+    if (!finalForm.id_admin) {
       const { data: { user } } = await supabase.auth.getUser();
-      finalForm.admin_creador_id = user ? user.id : '';
+      finalForm.id_admin = user ? user.id : '';
     }
     try {
       await Gestor_Promocion.crearPromocion(finalForm);
       setForm({
-        admin_creador_id: '',
-        descuento: 0,
-        fecha_inicio: '',
+        id_admin: '',
+        porcentaje: 0,
+        descripcion: '',
+        fecha_ini: '',
         fecha_fin: '',
-        activa: true,
-        url_banner: '',
+        id_contenido: null,
       });
       setShowForm(false);
       fetchPromociones();
@@ -72,29 +82,35 @@ export default function AdminPromociones() {
   const handleEditar = (promo: Promocion) => {
     setEditando(promo);
     setForm({
-      admin_creador_id: promo.admin_creador_id,
-      descuento: promo.descuento,
-      fecha_inicio: promo.fecha_inicio,
+      id_admin: promo.id_admin,
+      porcentaje: promo.porcentaje,
+      descripcion: promo.descripcion,
+      fecha_ini: promo.fecha_ini,
       fecha_fin: promo.fecha_fin,
-      activa: promo.activa,
-      url_banner: promo.url_banner,
+      id_contenido: promo.id_contenido ?? null,
     });
     setShowForm(true);
   };
 
   const handleActualizar = async () => {
     if (!editando) return;
+    let finalForm = { ...form };
+    Object.keys(finalForm).forEach(k => {
+      if (finalForm[k as keyof typeof finalForm] === '') {
+        finalForm[k as keyof typeof finalForm] = null as any;
+      }
+    });
     try {
-      await Gestor_Promocion.actualizarPromocion(editando.id, form);
+      await Gestor_Promocion.actualizarPromocion(editando.id_promocion, finalForm);
       setEditando(null);
       setShowForm(false);
       setForm({
-        admin_creador_id: '',
-        descuento: 0,
-        fecha_inicio: '',
+        id_admin: '',
+        porcentaje: 0,
+        descripcion: '',
+        fecha_ini: '',
         fecha_fin: '',
-        activa: true,
-        url_banner: '',
+        id_contenido: null,
       });
       fetchPromociones();
     } catch (e) {
@@ -102,10 +118,10 @@ export default function AdminPromociones() {
     }
   };
 
-  const handleEliminar = async (id: number) => {
+  const handleEliminar = async (id_promocion: number) => {
     if (!window.confirm("¿Eliminar promoción?")) return;
     try {
-      await Gestor_Promocion.eliminarPromocion(id);
+      await Gestor_Promocion.eliminarPromocion(id_promocion);
       fetchPromociones();
     } catch (e) {
       alert("Error al eliminar promoción");
@@ -117,51 +133,55 @@ export default function AdminPromociones() {
       <h2 className="admin-title">Gestión de Promociones</h2>
       <div className="admin-promo-list">
         {promociones.map(promo => (
-          <div className="admin-promo-card" key={promo.id}>
-            <div className="admin-promo-img">
-              <img
-                src={promo.url_banner || "/promo-placeholder.png"}
-                alt={"Banner de promoción"}
-                onError={e => (e.currentTarget.src = "/promo-placeholder.png")}
-              />
-            </div>
+          <div className="admin-promo-card" key={promo.id_promocion}>
             <div className="admin-promo-info">
-              <p><b>Admin:</b> {promo.admin_creador_id}</p>
-              <p><b>Descuento:</b> {promo.descuento}%</p>
-              <p><b>Inicio:</b> {promo.fecha_inicio}</p>
+              <p><b>Admin:</b> {promo.id_admin}</p>
+              <p><b>Porcentaje:</b> {promo.porcentaje}%</p>
+              <p><b>Descripción:</b> {promo.descripcion}</p>
+              <p><b>Inicio:</b> {promo.fecha_ini}</p>
               <p><b>Fin:</b> {promo.fecha_fin}</p>
-              <p><b>Activa:</b> {promo.activa ? "Sí" : "No"}</p>
+              <p><b>ID Contenido:</b> {promo.id_contenido ?? 'N/A'}</p>
               <div className="admin-promo-actions">
                 <button className="modificar-btn" onClick={() => handleEditar(promo)}>Modificar</button>
-                <button className="eliminar-btn" onClick={() => handleEliminar(promo.id)}>Eliminar</button>
+                <button className="eliminar-btn" onClick={() => handleEliminar(promo.id_promocion)}>Eliminar</button>
               </div>
             </div>
           </div>
         ))}
       </div>
-      {/* Botón grande para agregar promoción */}
       <div className="admin-add-promo-container">
         <button className="admin-add-promo-btn" onClick={() => { setEditando(null); setShowForm(!showForm); }}>
           <span style={{ fontSize: 28, marginRight: 8 }}>+</span> Agregar Promoción
         </button>
       </div>
-      {/* Formulario modal/incrustado */}
       {showForm && (
         <div className="admin-promo-form-modal">
           <div className="admin-promo-form">
             <h3>{editando ? "Editar promoción" : "Agregar promoción"}</h3>
             <input
-              name="descuento"
-              value={form.descuento}
+              name="id_admin"
+              value={form.id_admin}
               onChange={handleChange}
-              placeholder="Descuento (%)"
+              placeholder="ID Admin"
+            />
+            <input
+              name="porcentaje"
+              value={form.porcentaje}
+              onChange={handleChange}
+              placeholder="Porcentaje (%)"
               type="number"
               min="0"
               max="100"
             />
+            <textarea
+              name="descripcion"
+              value={form.descripcion}
+              onChange={handleChange}
+              placeholder="Descripción"
+            />
             <input
-              name="fecha_inicio"
-              value={form.fecha_inicio}
+              name="fecha_ini"
+              value={form.fecha_ini}
               onChange={handleChange}
               placeholder="Fecha de inicio"
               type="date"
@@ -173,24 +193,14 @@ export default function AdminPromociones() {
               placeholder="Fecha de fin"
               type="date"
             />
-            
             <input
-              name="url_banner"
-              value={form.url_banner}
+              name="id_contenido"
+              value={form.id_contenido ?? ''}
               onChange={handleChange}
-              placeholder="URL del banner"
+              placeholder="ID Contenido (opcional)"
+              type="number"
+              min="1"
             />
-
-            <label style={{ marginTop: 10 }}>
-              <input
-                name="activa"
-                type="checkbox"
-                checked={!!form.activa}
-                onChange={handleChange}
-                style={{ marginRight: 7 }}
-              />
-              Activa
-            </label>
             <div style={{ marginTop: 12 }}>
               {editando ? (
                 <>

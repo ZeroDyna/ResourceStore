@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CarruselOfertas from './CarruselOfertas';
-import { traer_Productos } from './traer_productos';
+import { traerContenido } from './traerContenido'; // Ajusta el nombre si cambiaste el archivo.
 import { supabase } from './supabaseClient';
 import { agregarAFavoritos } from './Gestor_Favoritos';
 import './CarruselOfertas.css';
 
 function Bienvenida() {
-  const [productos, setProductos] = useState<any[]>([]);
-  const [filteredProductos, setFilteredProductos] = useState<any[]>([]);
+  const [contenidos, setContenidos] = useState<any[]>([]);
+  const [filteredContenidos, setFilteredContenidos] = useState<any[]>([]);
   const [categorias, setCategorias] = useState<any[]>([]);
   const [subcategorias, setSubcategorias] = useState<any[]>([]);
   const [busqueda, setBusqueda] = useState('');
@@ -20,98 +20,110 @@ function Bienvenida() {
 
   useEffect(() => {
     async function fetchDatos() {
-      const productosData = await traer_Productos();
-      setProductos(productosData);
-      setFilteredProductos(productosData);
+      const contenidosData = await traerContenido();
+      setContenidos(contenidosData);
+      setFilteredContenidos(contenidosData);
 
       const { data: catData, error: catError } = await supabase.from('categorias').select('*');
       if (!catError) setCategorias(catData || []);
 
-      const { data: subData, error: subError } = await supabase.from('subcategorias').select('*');
-      if (!subError) setSubcategorias(subData || []);
+      const { data: subData, error: subError } = await supabase.from('categorias').select('*');
+      if (!subError) setSubcategorias(subData?.filter(c => c.id_categoria_padre !== null) || []);
     }
 
     fetchDatos();
   }, []);
 
-  const filtrarProductos = (query: string, categoria: string, subcategoria: string) => {
-    let filtered = productos;
+  const filtrarContenidos = (query: string, categoria: string, subcategoria: string) => {
+    let filtered = contenidos;
 
     if (query) {
-      filtered = filtered.filter((producto) =>
-        producto.nombre.toLowerCase().includes(query.toLowerCase()) ||
-        producto.descripcion.toLowerCase().includes(query.toLowerCase())
+      filtered = filtered.filter((contenido) =>
+        contenido.nombre.toLowerCase().includes(query.toLowerCase()) ||
+        (contenido.autor?.toLowerCase().includes(query.toLowerCase()) ?? false)
       );
     }
 
     if (categoria) {
-      filtered = filtered.filter((producto) => producto.categoria_id === parseInt(categoria));
+      filtered = filtered.filter((contenido) => contenido.id_categoria === parseInt(categoria));
     }
 
     if (subcategoria) {
-      filtered = filtered.filter((producto) => producto.subcategoria_id === parseInt(subcategoria));
+      filtered = filtered.filter((contenido) => contenido.id_categoria === parseInt(subcategoria));
     }
 
-    setFilteredProductos(filtered);
+    setFilteredContenidos(filtered);
     setPage(1);
   };
 
   const handleBusqueda = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
     setBusqueda(query);
-    filtrarProductos(query, categoria, subcategoria);
+    filtrarContenidos(query, categoria, subcategoria);
   };
 
   const handleCategoriaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selected = e.target.value;
     setCategoria(selected);
-    filtrarProductos(busqueda, selected, subcategoria);
+    filtrarContenidos(busqueda, selected, subcategoria);
   };
 
   const handleSubcategoriaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selected = e.target.value;
     setSubcategoria(selected);
-    filtrarProductos(busqueda, categoria, selected);
+    filtrarContenidos(busqueda, categoria, selected);
   };
 
-  const totalPages = Math.ceil(filteredProductos.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredContenidos.length / itemsPerPage);
   const startIndex = (page - 1) * itemsPerPage;
-  const currentProductos = filteredProductos.slice(startIndex, startIndex + itemsPerPage);
+  const currentContenidos = filteredContenidos.slice(startIndex, startIndex + itemsPerPage);
 
-  const agregarACarrito = async (productoId: number) => {
+  // Helper para obtener usuario actual (por email)
+  const obtenerUsuario = async () => {
+    const email = sessionStorage.getItem('user_email');
+    if (!email) return null;
+    const { data: usuario } = await supabase
+      .from('usuario')
+      .select('id_user, nombre_usuario, email, saldo')
+      .eq('email', email)
+      .maybeSingle();
+    return usuario;
+  };
+
+  const agregarACarrito = async (id_contenido: number) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      const usuario = await obtenerUsuario();
+      if (!usuario) {
         alert('Debes iniciar sesión');
         return;
       }
 
       const { data: carrito, error: errorBuscar } = await supabase
-        .from('carritos')
-        .select('id')
-        .eq('usuario_id', user.id)
+        .from('carrito')
+        .select('id_carrito')
+        .eq('id_user', usuario.id_user)
         .maybeSingle();
 
-      let carritoId = carrito?.id;
+      let carritoId = carrito?.id_carrito;
 
       if (!carritoId) {
         const { data: nuevo, error: errorCrear } = await supabase
-          .from('carritos')
-          .insert({ usuario_id: user.id })
+          .from('carrito')
+          .insert({ id_user: usuario.id_user, monto_total: 0, monto_a_pagar: 0 })
           .select()
           .single();
 
         if (errorCrear) throw errorCrear;
-        carritoId = nuevo.id;
+        carritoId = nuevo.id_carrito;
       }
 
       const { error: errorInsertar } = await supabase
         .from('detalle_carrito')
-        .insert({ carrito_id: carritoId, producto_id: productoId });
+        .insert({ id_carrito: carritoId, id_contenido });
 
       if (errorInsertar) throw errorInsertar;
 
-      alert('Producto agregado al carrito con éxito.');
+      alert('Contenido agregado al carrito con éxito.');
     } catch (error) {
       console.error('Error al agregar al carrito:', error);
       alert('Error al agregar al carrito.');
@@ -123,8 +135,8 @@ function Bienvenida() {
       <header className="top-bar">
         <h1>Resources Store</h1>
         <div className="top-info">
-          <span>Mi saldo: $400</span>
-          <span>USER_1</span>
+          <span>Mi saldo: ${/* puedes mostrar el saldo si lo guardas en sessionStorage o con el usuario */}</span>
+          <span>{sessionStorage.getItem('user_email') || 'Invitado'}</span>
         </div>
       </header>
 
@@ -143,7 +155,7 @@ function Bienvenida() {
         </aside>
 
         <section className="recomendaciones">
-          <h3>Explorar Productos</h3>
+          <h3>Explorar Contenidos</h3>
           <div className="filtros busqueda">
             <input
               type="text"
@@ -154,37 +166,42 @@ function Bienvenida() {
             <select value={categoria} onChange={handleCategoriaChange}>
               <option value="">Todas las Categorías</option>
               {categorias.map((cat) => (
-                <option key={cat.id} value={cat.id}>{cat.nombre}</option>
+                <option key={cat.id_categoria} value={cat.id_categoria}>{cat.nombre}</option>
               ))}
             </select>
             <select value={subcategoria} onChange={handleSubcategoriaChange}>
               <option value="">Todas las Subcategorías</option>
               {subcategorias.map((sub) => (
-                <option key={sub.id} value={sub.id}>{sub.nombre}</option>
+                <option key={sub.id_categoria} value={sub.id_categoria}>{sub.nombre}</option>
               ))}
             </select>
           </div>
 
           <div className="cards">
-            {currentProductos.map((producto) => (
-              <div className="card" key={producto.id}>
+            {currentContenidos.map((contenido) => (
+              <div className="card" key={contenido.id_contenido}>
                 <img
-                  src={producto.url_imagen}
-                  alt={producto.nombre}
-                  onClick={() => navigate(`/producto/${producto.id}`)}
+                  src={contenido.archivo}
+                  alt={contenido.nombre}
+                  onClick={() => navigate(`/contenido/${contenido.id_contenido}`)}
                   style={{ cursor: 'pointer' }}
                 />
-                <p>{producto.nombre}</p>
+                <p
+                  style={{ cursor: 'pointer', fontWeight: 500 }}
+                  onClick={() => navigate(`/contenido/${contenido.id_contenido}`)}
+                >
+                  {contenido.nombre}
+                </p>
                 <div className="botones">
-                  <button onClick={() => agregarACarrito(producto.id)} style={{ marginRight: '1rem' }}>🛒</button>
+                  <button onClick={() => agregarACarrito(contenido.id_contenido)} style={{ marginRight: '1rem' }}>🛒</button>
                   <button
                     onClick={async () => {
-                      const { data: { user } } = await supabase.auth.getUser();
-                      if (!user) {
+                      const usuario = await obtenerUsuario();
+                      if (!usuario) {
                         alert('Debes iniciar sesión');
                         return;
                       }
-                      const mensaje = await agregarAFavoritos(producto.id, user.id);
+                      const mensaje = await agregarAFavoritos(contenido.id_contenido, usuario.id_user);
                       alert(mensaje);
                     }}
                     style={{ marginRight: '1rem' }}
@@ -235,4 +252,3 @@ function Bienvenida() {
 }
 
 export default Bienvenida;
-

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { traerOfertas } from './traer_ofertas';
+import { traerPromociones } from './traerPromociones';
 import './CarruselOfertas.css';
 
 export default function CarruselOfertas() {
@@ -11,7 +11,7 @@ export default function CarruselOfertas() {
 
   useEffect(() => {
     async function loadOfertas() {
-      const ofertasData = await traerOfertas();
+      const ofertasData = await traerPromociones();
       if (Array.isArray(ofertasData)) {
         setOfertas(ofertasData);
       } else {

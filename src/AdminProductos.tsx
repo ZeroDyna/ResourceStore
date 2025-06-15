@@ -1,178 +1,251 @@
-import React, { useEffect, useState } from 'react';
-import { Gestor_Producto } from './Gestor_producto';
-import { Producto } from './Producto';
-import './AdminProductos.css';
-export default function AdminProductos() {
-  const [productos, setProductos] = useState<Producto[]>([]);
-  const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState<Omit<Producto, 'id'>>({
-    nombre: '',
-    descripcion: '',
-    autor: '',
-    precio: 0,
-    calificacion: 0,
-    categoria: '',
-    admin_creador_id: '',
-    fecha_creacion: '',
-    fecha_actualizacion: '',
-    activo: true,
-    url_imagen: '',
-  });
-  const [editando, setEditando] = useState<Producto | null>(null);
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import CarruselOfertas from './CarruselOfertas';
+import { traerContenido } from './traerContenido';
+import { supabase } from './supabaseClient';
+import { agregarAFavoritos } from './Gestor_Favoritos';
+import './CarruselOfertas.css';
+
+function Bienvenida() {
+  const [productos, setProductos] = useState<any[]>([]);
+  const [filteredProductos, setFilteredProductos] = useState<any[]>([]);
+  const [categorias, setCategorias] = useState<any[]>([]);
+  const [subcategorias, setSubcategorias] = useState<any[]>([]);
+  const [busqueda, setBusqueda] = useState('');
+  const [categoria, setCategoria] = useState('');
+  const [subcategoria, setSubcategoria] = useState('');
+  const [page, setPage] = useState(1);
+  const itemsPerPage = 12;
+  const navigate = useNavigate();
 
   useEffect(() => {
-    fetchProductos();
+    async function fetchDatos() {
+      const productosData = await traerContenido();
+      setProductos(productosData);
+      setFilteredProductos(productosData);
+
+      const { data: catData, error: catError } = await supabase.from('categorias').select('*');
+      if (!catError) setCategorias(catData || []);
+
+      const { data: subData, error: subError } = await supabase.from('subcategorias').select('*');
+      if (!subError) setSubcategorias(subData || []);
+    }
+
+    fetchDatos();
   }, []);
 
-  const fetchProductos = async () => {
-    try {
-      const lista = await Gestor_Producto.listarProductos();
-      setProductos(lista);
-    } catch (e) {
-      alert("Error al listar productos");
+  const filtrarProductos = (query: string, categoria: string, subcategoria: string) => {
+    let filtered = productos;
+
+    if (query) {
+      filtered = filtered.filter((producto) =>
+        producto.nombre.toLowerCase().includes(query.toLowerCase()) ||
+        producto.descripcion.toLowerCase().includes(query.toLowerCase())
+      );
     }
-  };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value, type } = e.target;
-    setForm(prev => ({
-      ...prev,
-      [name]: type === "number" ? Number(value) : value
-    }));
-  };
-
-  const handleAgregar = async () => {
-    try {
-      await Gestor_Producto.crearProducto(form);
-      setForm({
-        nombre: '',
-        descripcion: '',
-        autor: '',
-        precio: 0,
-        calificacion: 0,
-        categoria: '',
-        admin_creador_id: '',
-        fecha_creacion: '',
-        fecha_actualizacion: '',
-        activo: true,
-        url_imagen: '',
-      });
-      setShowForm(false);
-      fetchProductos();
-    } catch (e) {
-      alert("Error al agregar producto");
+    if (categoria) {
+      filtered = filtered.filter((producto) => producto.categoria_id === parseInt(categoria));
     }
-  };
 
-  const handleEditar = (prod: Producto) => {
-    setEditando(prod);
-    setForm({
-      nombre: prod.nombre,
-      descripcion: prod.descripcion,
-      autor: prod.autor,
-      precio: prod.precio,
-      calificacion: prod.calificacion,
-      categoria: prod.categoria,
-      admin_creador_id: prod.admin_creador_id,
-      fecha_creacion: prod.fecha_creacion,
-      fecha_actualizacion: prod.fecha_actualizacion,
-      activo: prod.activo,
-      url_imagen: prod.url_imagen,
-    });
-    setShowForm(true);
-  };
-
-  const handleActualizar = async () => {
-    if (!editando) return;
-    try {
-      await Gestor_Producto.editarProducto(editando.id, form);
-      setEditando(null);
-      setShowForm(false);
-      setForm({
-        nombre: '',
-        descripcion: '',
-        autor: '',
-        precio: 0,
-        calificacion: 0,
-        categoria: '',
-        admin_creador_id: '',
-        fecha_creacion: '',
-        fecha_actualizacion: '',
-        activo: true,
-        url_imagen: '',
-      });
-      fetchProductos();
-    } catch (e) {
-      alert("Error al actualizar producto");
+    if (subcategoria) {
+      filtered = filtered.filter((producto) => producto.subcategoria_id === parseInt(subcategoria));
     }
+
+    setFilteredProductos(filtered);
+    setPage(1);
   };
 
-  const handleEliminar = async (id: number) => {
-    if (!window.confirm("¿Eliminar producto?")) return;
+  const handleBusqueda = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const query = e.target.value;
+    setBusqueda(query);
+    filtrarProductos(query, categoria, subcategoria);
+  };
+
+  const handleCategoriaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selected = e.target.value;
+    setCategoria(selected);
+    filtrarProductos(busqueda, selected, subcategoria);
+  };
+
+  const handleSubcategoriaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selected = e.target.value;
+    setSubcategoria(selected);
+    filtrarProductos(busqueda, categoria, selected);
+  };
+
+  const totalPages = Math.ceil(filteredProductos.length / itemsPerPage);
+  const startIndex = (page - 1) * itemsPerPage;
+  const currentProductos = filteredProductos.slice(startIndex, startIndex + itemsPerPage);
+
+  // Obtén el usuario desde sessionStorage y de la tabla users
+  const obtenerUsuario = async () => {
+    const email = sessionStorage.getItem('user_email');
+    if (!email) return null;
+    const { data: user } = await supabase
+      .from('users')
+      .select('id, nombre, email')
+      .eq('email', email)
+      .maybeSingle();
+    return user;
+  };
+
+  const agregarACarrito = async (productoId: number) => {
     try {
-      await Gestor_Producto.eliminarProducto(id);
-      fetchProductos();
-    } catch (e) {
-      alert("Error al eliminar producto");
+      const user = await obtenerUsuario();
+      if (!user) {
+        alert('Debes iniciar sesión');
+        return;
+      }
+
+      const { data: carrito, error: errorBuscar } = await supabase
+        .from('carritos')
+        .select('id')
+        .eq('usuario_id', user.id)
+        .maybeSingle();
+
+      let carritoId = carrito?.id;
+
+      if (!carritoId) {
+        const { data: nuevo, error: errorCrear } = await supabase
+          .from('carritos')
+          .insert({ usuario_id: user.id })
+          .select()
+          .single();
+
+        if (errorCrear) throw errorCrear;
+        carritoId = nuevo.id;
+      }
+
+      const { error: errorInsertar } = await supabase
+        .from('detalle_carrito')
+        .insert({ carrito_id: carritoId, producto_id: productoId });
+
+      if (errorInsertar) throw errorInsertar;
+
+      alert('Producto agregado al carrito con éxito.');
+    } catch (error) {
+      console.error('Error al agregar al carrito:', error);
+      alert('Error al agregar al carrito.');
     }
   };
 
   return (
-    <div className="admin-prod-container">
-      <h2 className="admin-title">Interfaz de Gestión de Administrador</h2>
-      <div className="admin-prod-list">
-        {productos.map(prod => (
-          <div className="admin-prod-card" key={prod.id}>
-            <div className="admin-prod-img">
-              <img
-                src={prod.url_imagen || "/placeholder.png"}
-                alt={prod.nombre}
-                onError={e => (e.currentTarget.src = "/placeholder.png")}
-              />
-            </div>
-            <div className="admin-prod-info">
-              <h4>{prod.nombre}</h4>
-              <p className="admin-prod-desc">{prod.descripcion || "Sin descripción..."}</p>
-              <div className="admin-prod-actions">
-                <button className="modificar-btn" onClick={() => handleEditar(prod)}>Modificar</button>
-                <button className="eliminar-btn" onClick={() => handleEliminar(prod.id)}>Eliminar</button>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-      {/* Botón grande para agregar producto */}
-      <div className="admin-add-product-container">
-        <button className="admin-add-product-btn" onClick={() => { setEditando(null); setShowForm(!showForm); }}>
-          <span style={{ fontSize: 28, marginRight: 8 }}>+</span> Agregar Producto
-        </button>
-      </div>
-      {/* Formulario modal/incrustado */}
-      {showForm && (
-        <div className="admin-prod-form-modal">
-          <div className="admin-prod-form">
-            <h3>{editando ? "Editar producto" : "Agregar producto"}</h3>
-            <input name="nombre" value={form.nombre} onChange={handleChange} placeholder="Nombre" />
-            <textarea name="descripcion" value={form.descripcion} onChange={handleChange} placeholder="Descripción" />
-            <input name="autor" value={form.autor} onChange={handleChange} placeholder="Autor" />
-            <input name="precio" value={form.precio} onChange={handleChange} placeholder="Precio" type="number" step="0.01" />
-            <input name="url_imagen" value={form.url_imagen} onChange={handleChange} placeholder="URL imagen" />
-            <div style={{ marginTop: 12 }}>
-              {editando ? (
-                <>
-                  <button className="modificar-btn" onClick={handleActualizar}>Actualizar</button>
-                  <button className="eliminar-btn" style={{ marginLeft: 8 }}
-                    onClick={() => { setEditando(null); setShowForm(false); }}>
-                    Cancelar
-                  </button>
-                </>
-              ) : (
-                <button className="modificar-btn" onClick={handleAgregar}>Agregar</button>
-              )}
-            </div>
-          </div>
+    <div className="principal-container">
+      <header className="top-bar">
+        <h1>Resources Store</h1>
+        <div className="top-info">
+          <span>Mi saldo: $400</span>
+          <span>
+            {sessionStorage.getItem('user_email') || 'Invitado'}
+          </span>
         </div>
-      )}
+      </header>
+
+      <section>
+        <CarruselOfertas />
+      </section>
+
+      <main className="contenido-principal">
+        <aside className="sidebar">
+          <ul>
+            <li onClick={() => navigate("/Bienvenida")}>Inicio</li>
+            <li onClick={() => navigate("/carrito")}>Carrito</li>
+            <li onClick={() => navigate("/descargas")}>Descargas</li>
+            <li onClick={() => navigate("/favoritos")}>Favoritos</li>
+          </ul>
+        </aside>
+
+        <section className="recomendaciones">
+          <h3>Explorar Productos</h3>
+          <div className="filtros busqueda">
+            <input
+              type="text"
+              placeholder="Buscar contenido..."
+              value={busqueda}
+              onChange={handleBusqueda}
+            />
+            <select value={categoria} onChange={handleCategoriaChange}>
+              <option value="">Todas las Categorías</option>
+              {categorias.map((cat) => (
+                <option key={cat.id} value={cat.id}>{cat.nombre}</option>
+              ))}
+            </select>
+            <select value={subcategoria} onChange={handleSubcategoriaChange}>
+              <option value="">Todas las Subcategorías</option>
+              {subcategorias.map((sub) => (
+                <option key={sub.id} value={sub.id}>{sub.nombre}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="cards">
+            {currentProductos.map((producto) => (
+              <div className="card" key={producto.id}>
+                <img
+                  src={producto.url_imagen}
+                  alt={producto.nombre}
+                  onClick={() => navigate(`/producto/${producto.id}`)}
+                  style={{ cursor: 'pointer' }}
+                />
+                <p>{producto.nombre}</p>
+                <div className="botones">
+                  <button onClick={() => agregarACarrito(producto.id)} style={{ marginRight: '1rem' }}>🛒</button>
+                  <button
+                    onClick={async () => {
+                      const user = await obtenerUsuario();
+                      if (!user) {
+                        alert('Debes iniciar sesión');
+                        return;
+                      }
+                      const mensaje = await agregarAFavoritos(producto.id, user.id);
+                      alert(mensaje);
+                    }}
+                    style={{ marginRight: '1rem' }}
+                  >❤️</button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="botones-paginacion">
+            <button onClick={() => setPage(page - 1)} disabled={page === 1}>&lt;</button>
+            {[...Array(totalPages)].map((_, index) => (
+              <button
+                key={index}
+                className={page === index + 1 ? 'activo' : ''}
+                onClick={() => setPage(index + 1)}
+              >
+                {index + 1}
+              </button>
+            ))}
+            <button onClick={() => setPage(page + 1)} disabled={page === totalPages}>&gt;</button>
+          </div>
+        </section>
+
+        <aside className="destacados">
+          <h4>Videos Destacados</h4>
+          <ul>
+            <li>Video1.MP4</li>
+            <li>Video2.AVI</li>
+            <li>Video3.MKV</li>
+          </ul>
+          <h4>Imágenes Destacadas</h4>
+          <ul>
+            <li>Imagen1.PNG</li>
+            <li>Imagen2.WEBP</li>
+            <li>Imagen3.JPG</li>
+          </ul>
+          <h4>Audios Destacados</h4>
+          <ul>
+            <li>Audio1.MP3</li>
+            <li>Audio2.WAV</li>
+            <li>Audio3.OGG</li>
+          </ul>
+        </aside>
+      </main>
     </div>
   );
 }
+
+export default Bienvenida;

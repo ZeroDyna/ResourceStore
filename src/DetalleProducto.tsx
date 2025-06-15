@@ -14,13 +14,14 @@ function withNavigationAndParams(Component: any) {
   };
 }
 
-type Producto = {
-  id: number;
+type Contenido = {
+  id_contenido: number;
   nombre: string;
-  descripcion: string;
-  categoria_id?: string;
-  subcategoria_id?: string;
-  url_imagen?: string;
+  descripcion?: string;
+  autor?: string;
+  archivo?: string;
+  formato?: string;
+  // Agrega aquí otros campos que realmente existan en la tabla contenido
 };
 
 type DetalleProductoProps = {
@@ -29,7 +30,7 @@ type DetalleProductoProps = {
 };
 
 type DetalleProductoState = {
-  producto: Producto | null;
+  contenido: Contenido | null;
   loading: boolean;
   error: string | null;
 };
@@ -38,50 +39,59 @@ class DetalleProducto extends React.Component<DetalleProductoProps, DetalleProdu
   constructor(props: DetalleProductoProps) {
     super(props);
     this.state = {
-      producto: null,
+      contenido: null,
       loading: true,
       error: null,
     };
   }
 
   componentDidMount() {
-    this.fetchProducto();
+    this.fetchContenido();
   }
 
   componentDidUpdate(prevProps: DetalleProductoProps) {
-    if (this.props.params.id !== prevProps.params.id) {
-      this.fetchProducto();
+    // Detectar cambio de id_contenido y recargar si es necesario
+    if (
+      this.props.params.id_contenido !== prevProps.params.id_contenido ||
+      this.props.params.id !== prevProps.params.id
+    ) {
+      this.fetchContenido();
     }
   }
 
-  fetchProducto = async () => {
-    const { id } = this.props.params;
+  fetchContenido = async () => {
+    // Soporta /contenido/:id_contenido y /contenido/:id por compatibilidad
+    const id = this.props.params.id_contenido || this.props.params.id;
+    if (!id) {
+      this.setState({ loading: false, error: 'ID de contenido no definido.', contenido: null });
+      return;
+    }
     this.setState({ loading: true, error: null });
 
     try {
       const { data, error } = await supabase
-        .from('productos')
+        .from('contenido')
         .select('*')
-        .eq('id', id)
+        .eq('id_contenido', id)
         .single();
 
-      if (error) {
-        this.setState({ error: 'No se pudo cargar el producto.', producto: null });
-        console.error('Error al cargar producto:', error);
+      if (error || !data) {
+        this.setState({ error: 'No se pudo cargar el contenido.', contenido: null });
+        console.error('Error al cargar contenido:', error);
       } else {
-        this.setState({ producto: data, error: null });
+        this.setState({ contenido: data, error: null });
       }
     } catch (err) {
       console.error('Error inesperado:', err);
-      this.setState({ error: 'Ocurrió un error inesperado.', producto: null });
+      this.setState({ error: 'Ocurrió un error inesperado.', contenido: null });
     } finally {
       this.setState({ loading: false });
     }
   };
 
   handleAgregarCarrito = async () => {
-    const { producto } = this.state;
-    if (!producto) return;
+    const { contenido } = this.state;
+    if (!contenido) return;
 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
@@ -89,13 +99,13 @@ class DetalleProducto extends React.Component<DetalleProductoProps, DetalleProdu
       return;
     }
 
-    const mensaje = await agregarACarrito(producto.id, user.id);
+    const mensaje = await agregarACarrito(contenido.id_contenido, user.id);
     alert(mensaje);
   };
 
   handleAgregarFavoritos = async () => {
-    const { producto } = this.state;
-    if (!producto) return;
+    const { contenido } = this.state;
+    if (!contenido) return;
 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
@@ -103,17 +113,17 @@ class DetalleProducto extends React.Component<DetalleProductoProps, DetalleProdu
       return;
     }
 
-    const mensaje = await agregarAFavoritos(producto.id, user.id);
+    const mensaje = await agregarAFavoritos(contenido.id_contenido, user.id);
     alert(mensaje);
   };
 
   render() {
-    const { producto, loading, error } = this.state;
+    const { contenido, loading, error } = this.state;
     const { navigate } = this.props;
 
-    if (loading) return <div className="loading">Cargando producto...</div>;
+    if (loading) return <div className="loading">Cargando recurso...</div>;
     if (error) return <div className="error">{error}</div>;
-    if (!producto) return <div className="error">Producto no encontrado.</div>;
+    if (!contenido) return <div className="error">Recurso no encontrado.</div>;
 
     return (
       <div className="detalle-producto-container">
@@ -138,15 +148,16 @@ class DetalleProducto extends React.Component<DetalleProductoProps, DetalleProdu
           <section className="recomendaciones">
             <button onClick={() => navigate(-1)} style={{ marginBottom: '1rem' }}>⬅ Volver</button>
 
-            <h2>{producto.nombre || 'Nombre no disponible'}</h2>
+            <h2>{contenido.nombre || 'Nombre no disponible'}</h2>
+            {/* Si tienes una imagen, usa el campo real, si no, muestra un placeholder */}
             <img
-              src={producto.url_imagen || 'https://via.placeholder.com/300'}
-              alt={producto.nombre || 'Producto'}
+              src={contenido.archivo || 'https://via.placeholder.com/300'}
+              alt={contenido.nombre || 'Recurso'}
               style={{ width: '300px', margin: '1rem 0' }}
             />
-            <p><strong>Descripción:</strong> {producto.descripcion || 'No disponible'}</p>
-            <p><strong>Categoría:</strong> {producto.categoria_id || 'No disponible'}</p>
-            <p><strong>Subcategoría:</strong> {producto.subcategoria_id || 'No disponible'}</p>
+            <p><strong>Descripción:</strong> {contenido.descripcion || 'No disponible'}</p>
+            <p><strong>Autor:</strong> {contenido.autor || 'No disponible'}</p>
+            <p><strong>Formato:</strong> {contenido.formato || 'No disponible'}</p>
 
             <div style={{ marginTop: '1.5rem' }}>
               <button

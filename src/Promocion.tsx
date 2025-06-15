@@ -1,10 +1,11 @@
-export type Promocion = {
-  id: number;
-  admin_creador_id: string;
-  descuento: number;
-  fecha_inicio: string;
+export interface Promocion {
+  id_promocion: number;
+  id_admin: string;
+  porcentaje: number;
+  descripcion: string;
+  fecha_ini: string;
   fecha_fin: string;
   activa: boolean;
-  fecha_creacion: string;
   url_banner: string;
-};
+  id_contenido?: number | null;
+}

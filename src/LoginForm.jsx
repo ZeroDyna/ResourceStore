@@ -3,9 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from './supabaseClient';
 import fondo from './fondo.jpeg';
 import './FormStyles.css';
-import Iadministrador from './IAdministrador';
-// Si usas contraseñas hasheadas, instala bcryptjs y descomenta esto:
-// import bcrypt from 'bcryptjs';
 
 function LoginForm() {
   const [correo, setCorreo] = useState('');
@@ -13,39 +10,48 @@ function LoginForm() {
   const navigate = useNavigate();
 
   const handleLogin = async () => {
-    // Buscar en administradores
+    // Buscar primero en admin
     const { data: admin, error: adminError } = await supabase
-      .from('administradores')
+      .from('admin')
       .select('*')
       .eq('email', correo)
-      .single();
+      .maybeSingle();
+
+    if (adminError) {
+      console.log('Error buscando en admin:', adminError.message);
+    }
 
     if (admin) {
-      // Si tienes hashes: const passwordOk = await bcrypt.compare(password, admin.contraseña_hash);
-      const passwordOk = password === admin.contraseña_hash;
+      const passwordOk = password === admin.contrasenia;
       if (passwordOk) {
-        // Guarda sesión si lo deseas
         sessionStorage.setItem('user_role', 'admin');
         sessionStorage.setItem('user_email', admin.email);
-        // Redirige al dashboard admin
+        sessionStorage.setItem('user_id', admin.id_admin);
+        sessionStorage.setItem('user_nombre', admin.nombre_usuario);
         navigate('/IAdministrador');
         return;
       }
     }
 
-    // Buscar en users
+    // Buscar en usuario
     const { data: user, error: userError } = await supabase
-      .from('users') // Cambia por el nombre real de tu tabla de usuarios si es diferente
+      .from('usuario')
       .select('*')
       .eq('email', correo)
-      .single();
+      .maybeSingle();
+
+    if (userError) {
+      console.log('Error buscando en usuario:', userError.message);
+    }
 
     if (user) {
-      // Si tienes hashes: const passwordOk = await bcrypt.compare(password, user.contraseña_hash);
-      const passwordOk = password === user.contraseña_hash;
+      const passwordOk = password === user.contrasenia;
       if (passwordOk) {
         sessionStorage.setItem('user_role', 'user');
         sessionStorage.setItem('user_email', user.email);
+        sessionStorage.setItem('user_id', user.id_user);
+        sessionStorage.setItem('user_nombre', user.nombre_usuario);
+        sessionStorage.setItem('user_saldo', user.saldo);
         navigate('/bienvenida');
         return;
       }
