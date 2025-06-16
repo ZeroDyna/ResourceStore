@@ -3,7 +3,6 @@ import { NavigateFunction, useNavigate } from "react-router-dom";
 import { supabase } from "./supabaseClient";
 import "./Carrito.css";
 
-// HOC para pasar navigate a componente de clase
 function withNavigation(Component: any) {
   return function WrappedComponent(props: any) {
     const navigate = useNavigate();
@@ -11,14 +10,13 @@ function withNavigation(Component: any) {
   };
 }
 
-type Producto = {
-  id: number;
+type Contenido = {
+  id_contenido: number;
   nombre: string;
   descripcion: string;
   autor?: string;
   precio: number;
-  calificacion?: number;
-  url_imagen?: string;
+  archivo?: string;
 };
 
 type CarritoProps = {
@@ -26,7 +24,7 @@ type CarritoProps = {
 };
 
 type CarritoState = {
-  carrito: Producto[];
+  carrito: Contenido[];
   loading: boolean;
 };
 
@@ -43,137 +41,107 @@ class Carrito extends React.Component<CarritoProps, CarritoState> {
     await this.fetchCarrito();
   }
 
-  // ✅ Obtener productos del carrito
-  fetchCarrito = async () => {
-    try {
-      const { data: userData, error: userError } = await supabase.auth.getUser();
-      if (userError) throw userError;
-      const user = userData.user;
-
-      if (!user) {
-        console.warn("⚠️ No hay usuario logueado");
-        this.setState({ carrito: [] });
-        return;
-      }
-
-      const { data: carritoData, error: carritoError } = await supabase
-        .from("carritos")
-        .select("id")
-        .eq("usuario_id", user.id);
-
-      if (carritoError) throw carritoError;
-      if (!carritoData || carritoData.length === 0) {
-        this.setState({ carrito: [] });
-        return;
-      }
-
-      const carritoIds = carritoData.map((car: any) => car.id);
-      const { data: detalleCarritoData, error: detalleCarritoError } = await supabase
-        .from("detalle_carrito")
-        .select("producto_id")
-        .in("carrito_id", carritoIds);
-
-      if (detalleCarritoError) throw detalleCarritoError;
-      if (!detalleCarritoData || detalleCarritoData.length === 0) {
-        this.setState({ carrito: [] });
-        return;
-      }
-
-      const productosPromises = detalleCarritoData.map(async (detalle: any) => {
-        const { data: productoData, error: productoError } = await supabase
-          .from("productos")
-          .select("id, nombre, descripcion, autor, precio, calificacion, url_imagen")
-          .eq("id", detalle.producto_id)
-          .single();
-
-        if (productoError) return null;
-        return productoData;
-      });
-
-      const productosData = (await Promise.all(productosPromises)).filter(Boolean) as Producto[];
-      this.setState({ carrito: productosData });
-    } catch (err) {
-      console.error("❌ Error al obtener carrito:", err);
-    } finally {
-      this.setState({ loading: false });
+// Obtener los contenidos del carrito
+fetchCarrito = async () => {
+  try {
+    const userId = localStorage.getItem("user_id");
+    if (!userId) {
+      this.setState({ carrito: [] });
+      return;
     }
-  };
 
-  // ✅ Eliminar producto del carrito
-  handleQuitarCarrito = async (productoId: number) => {
-    try {
-      const { data: detalleData, error: detalleError } = await supabase
-        .from("detalle_carrito")
-        .select("id")
-        .eq("producto_id", productoId)
-        .limit(1);
+    const { data: carritoData, error: carritoError } = await supabase
+      .from("carrito")
+      .select("id_contenido")
+      .eq("id_user", userId);
 
-      if (detalleError || !detalleData || detalleData.length === 0) {
-        throw new Error("No se encontró el detalle carrito para el producto.");
-      }
-
-      const detalleCarritoId = detalleData[0].id;
-
-      const { error: deleteError } = await supabase
-        .from("detalle_carrito")
-        .delete()
-        .eq("id", detalleCarritoId);
-
-      if (deleteError) throw deleteError;
-
-      await this.fetchCarrito();
-    } catch (err) {
-      console.error("❌ Error al quitar de carrito:", err);
+    if (carritoError) throw carritoError;
+    if (!carritoData || carritoData.length === 0) {
+      this.setState({ carrito: [] });
+      return;
     }
-  };
 
-  // ✅ Añadir producto al carrito
-  handleAgregarAlCarrito = async (productoId: number) => {
-    try {
-      const { data: userData, error: userError } = await supabase.auth.getUser();
-      if (userError) throw userError;
-      const user = userData.user;
+    const contenidosIds = carritoData.map(item => item.id_contenido);
 
-      const { data: carritoData } = await supabase
-        .from("carritos")
-        .select("id")
-        .eq("usuario_id", user.id)
+    const contenidosPromises = contenidosIds.map(async (contenidoId: number) => {
+      const { data, error } = await supabase
+        .from("contenido")
+        .select("id_contenido, nombre, descripcion, autor, precio, archivo")
+        .eq("id_contenido", contenidoId)
         .single();
 
-      const carritoId = carritoData?.id;
-      if (!carritoId) throw new Error("No se encontró carrito para el usuario.");
+      if (error) return null;
+      return data;
+    });
 
-      const { error: insertError } = await supabase
-        .from("detalle_carrito")
-        .insert([{ carrito_id: carritoId, producto_id: productoId }]);
+    const contenidosData = (await Promise.all(contenidosPromises)).filter(Boolean) as Contenido[];
+    this.setState({ carrito: contenidosData });
+  } catch (err) {
+    console.error("❌ Error al obtener carrito:", err);
+  } finally {
+    this.setState({ loading: false });
+  }
+};
 
-      if (insertError) throw insertError;
+handleQuitarCarrito = async (contenidoId: number) => {
+  try {
+    const userId = localStorage.getItem("user_id");
+    if (!userId) return;
 
-      await this.fetchCarrito();
-    } catch (err) {
-      console.error("❌ Error al añadir al carrito:", err);
-    }
-  };
+    const { error: deleteError } = await supabase
+      .from("carrito")
+      .delete()
+      .match({ id_user: userId, id_contenido: contenidoId });
 
-  // ✅ Calcular total
+    if (deleteError) throw deleteError;
+
+    await this.fetchCarrito();
+  } catch (err) {
+    console.error("❌ Error al quitar del carrito:", err);
+  }
+};
+
+handleAgregarAlCarrito = async (contenidoId: number) => {
+  try {
+    const userId = localStorage.getItem("user_id");
+    if (!userId) return;
+
+    // Verifica si ya está en el carrito
+    const { data: existente, error: existeError } = await supabase
+      .from("carrito")
+      .select("*")
+      .match({ id_user: userId, id_contenido: contenidoId });
+
+    if (existeError) throw existeError;
+    if (existente.length > 0) return;
+
+    const { error: insertError } = await supabase
+      .from("carrito")
+      .insert([{ id_user: userId, id_contenido: contenidoId }]);
+
+    if (insertError) throw insertError;
+
+    await this.fetchCarrito();
+  } catch (err) {
+    console.error("❌ Error al añadir al carrito:", err);
+  }
+};
+
+
   getTotalCarrito = () => {
-    return this.state.carrito.reduce((total, producto) => total + producto.precio, 0);
+    return this.state.carrito.reduce((total, contenido) => total + contenido.precio, 0);
   };
 
   handlePagarCarrito = () => {
-  const total = this.getTotalCarrito();
-  if (total === 0) {
-    alert("Tu carrito está vacío.");
-    return;
-  }
+    const total = this.getTotalCarrito();
+    if (total === 0) {
+      alert("Tu carrito está vacío.");
+      return;
+    }
 
-  // Aquí podrías redirigir al sistema de pago real
-  alert(`Gracias por tu compra. Total pagado: $${total.toFixed(2)}`);
-
-  // Opcional: Vaciar carrito después de pagar
-  // Podrías implementar lógica adicional aquí para mover productos a "descargados"
-};
-
+    alert(`Gracias por tu compra. Total pagado: $${total.toFixed(2)}`);
+    // Aquí puedes vaciar el carrito si deseas
+  };
 
   render() {
     const { carrito, loading } = this.state;
@@ -186,21 +154,10 @@ class Carrito extends React.Component<CarritoProps, CarritoState> {
             <p className="section-title">Navegación</p>
             <ul>
               <li onClick={() => navigate("/Bienvenida")}>Inicio</li>
-              <li onClick={() => navigate("/carrito")}>Carrito</li>
+              <li onClick={() => navigate("/carrito")} className="active">Carrito</li>
               <li onClick={() => navigate("/descargas")}>Descargas</li>
-              <li onClick={() => navigate("/favoritos")} className="active">
-                Favoritos
-              </li>
+              <li onClick={() => navigate("/favoritos")}>Favoritos</li>
             </ul>
-            <p className="section-title">Categorías</p>
-            <ul>
-              <li>Videos</li>
-              <li>Audios</li>
-              <li>Imágenes</li>
-            </ul>
-          </div>
-          <div className="chat-box">
-            <p>¡Explora tus favoritos!</p>
           </div>
         </aside>
 
@@ -212,32 +169,31 @@ class Carrito extends React.Component<CarritoProps, CarritoState> {
             <p>No tienes productos en carrito.</p>
           ) : (
             <>
-              {carrito.map((producto, index) => (
-                <div className="item" key={index + "-" + producto.id}>
+              {carrito.map((contenido, index) => (
+                <div className="item" key={index + "-" + contenido.id_contenido}>
                   <img
-                    src={producto.url_imagen || "https://via.placeholder.com/150"}
-                    alt={producto.nombre}
+                    src={contenido.archivo || "https://via.placeholder.com/150"}
+                    alt={contenido.nombre}
                   />
                   <div className="info">
-                    <h3>{producto.nombre}</h3>
-                    <p>{producto.descripcion}</p>
-                    <p>Autor: {producto.autor || "Desconocido"}</p>
-                    <p>Precio: ${producto.precio?.toFixed(2)}</p>
+                    <h3>{contenido.nombre}</h3>
+                    <p>{contenido.descripcion}</p>
+                    <p>Autor: {contenido.autor || "Desconocido"}</p>
+                    <p>Precio: ${contenido.precio.toFixed(2)}</p>
                     <div className="buttons">
                       <button className="btn-black">Regalar</button>
                       <button
                         className="btn-red"
-                        onClick={() => this.handleQuitarCarrito(producto.id)}
+                        onClick={() => this.handleQuitarCarrito(contenido.id_contenido)}
                       >
                         Quitar de carrito
                       </button>
                     </div>
                   </div>
-                  <div className="price">${producto.precio?.toFixed(2)}</div>
+                  <div className="price">${contenido.precio.toFixed(2)}</div>
                 </div>
               ))}
 
-              {/* ✅ Mostrar total */}
               <div className="total">
                 <h3>Total: ${this.getTotalCarrito().toFixed(2)}</h3>
               </div>

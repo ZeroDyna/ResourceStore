@@ -43,9 +43,10 @@ function App() {
     };
   }, []);
 
-  const RutaProtegida = ({ element }: { element: JSX.Element }) => {
-    return usuario ? element : <Navigate to="/login" />;
-  };
+ const RutaProtegida = ({ element }: { element: JSX.Element }) => {
+  const userId = localStorage.getItem('user_id');
+  return userId ? element : <Navigate to="/" />;
+};
 
   if (loading) {
     return <div className="loading-screen">Cargando...</div>;

@@ -1,5 +1,6 @@
 import { supabase } from './supabaseClient';
 
+
 export async function agregarACarrito(productoId: number, usuarioId: number): Promise<string> {
   try {
     // 1. Verificar si ya existe ese producto en el carrito del usuario
@@ -10,39 +11,28 @@ export async function agregarACarrito(productoId: number, usuarioId: number): Pr
       .eq('id_contenido', productoId)
       .maybeSingle();
 
-    if (errorBuscar) {
-      console.error('❌ Error al buscar producto en carrito:', errorBuscar);
-      throw errorBuscar;
-    }
+    if (errorBuscar) throw errorBuscar;
 
     if (productoEnCarrito) {
       return 'El producto ya está en el carrito.';
     }
 
     // 2. Insertar nuevo producto en el carrito
-    const insertData = {
-      id_user: usuarioId,
-      id_contenido: productoId,
-      monto_total: 0,
-      monto_a_pagar: 0,
-    };
-
-    console.log('📦 Insertando:', insertData);
-
-    const { data, error: errorInsertar } = await supabase
+    const { error: errorInsertar } = await supabase
       .from('carrito')
-      .insert([insertData])
-      .select();
+      .insert([{
+        id_user: usuarioId,
+        id_contenido: productoId
+           // Puedes aplicar descuento aquí si aplica
+      }]);
 
-    if (errorInsertar) {
-      console.error('❌ Error al insertar en carrito:', errorInsertar);
-      throw errorInsertar;
-    }
+    if (errorInsertar) throw errorInsertar;
 
-    console.log('✅ Producto insertado en carrito:', data);
     return 'Producto agregado al carrito con éxito.';
   } catch (error) {
     console.error('❌ Error al agregar al carrito:', error);
     return 'Error al agregar al carrito. Por favor, intenta de nuevo.';
   }
 }
+
+

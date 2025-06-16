@@ -47,11 +47,11 @@ function LoginForm() {
     if (user) {
       const passwordOk = password === user.contrasenia;
       if (passwordOk) {
-        sessionStorage.setItem('user_role', 'user');
-        sessionStorage.setItem('user_email', user.email);
-        sessionStorage.setItem('user_id', user.id_user);
-        sessionStorage.setItem('user_nombre', user.nombre_usuario);
-        sessionStorage.setItem('user_saldo', user.saldo);
+        localStorage.setItem('user_role', 'user');
+        localStorage.setItem('user_email', user.email);
+        localStorage.setItem('user_id', user.id_user);
+        localStorage.setItem('user_nombre', user.nombre_usuario);
+        localStorage.setItem('user_saldo', user.saldo);
         navigate('/bienvenida');
         return;
       }

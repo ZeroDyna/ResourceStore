@@ -4,6 +4,7 @@ import CarruselOfertas from './CarruselOfertas';
 import { traerContenido } from './traerContenido'; // Ajusta el nombre si cambiaste el archivo.
 import { supabase } from './supabaseClient';
 import { agregarAFavoritos } from './Gestor_Favoritos';
+import { agregarACarrito } from './agregarAlCarrito';
 import './CarruselOfertas.css';
 
 function Bienvenida() {
@@ -90,43 +91,29 @@ function Bienvenida() {
     return usuario;
   };
 
-  const agregarACarrito = async (id_contenido: number) => {
+  const handleAgregarAlCarrito = async (contenidoId: number) => {
     try {
-      const usuario = await obtenerUsuario();
-      if (!usuario) {
-        alert('Debes iniciar sesión');
-        return;
-      }
-
-      const { data: carrito, error: errorBuscar } = await supabase
-        .from('carrito')
-        .select('id_carrito')
-        .eq('id_user', usuario.id_user)
-        .maybeSingle();
-
-      let carritoId = carrito?.id_carrito;
-
-      if (!carritoId) {
-        const { data: nuevo, error: errorCrear } = await supabase
-          .from('carrito')
-          .insert({ id_user: usuario.id_user, monto_total: 0, monto_a_pagar: 0 })
-          .select()
-          .single();
-
-        if (errorCrear) throw errorCrear;
-        carritoId = nuevo.id_carrito;
-      }
-
-      const { error: errorInsertar } = await supabase
-        .from('detalle_carrito')
-        .insert({ id_carrito: carritoId, id_contenido });
-
-      if (errorInsertar) throw errorInsertar;
-
-      alert('Contenido agregado al carrito con éxito.');
-    } catch (error) {
-      console.error('Error al agregar al carrito:', error);
-      alert('Error al agregar al carrito.');
+      const userId = localStorage.getItem("user_id");
+      if (!userId) return;
+  
+      // Verifica si ya está en el carrito
+      const { data: existente, error: existeError } = await supabase
+        .from("carrito")
+        .select("*")
+        .match({ id_user: userId, id_contenido: contenidoId });
+  
+      if (existeError) throw existeError;
+      if (existente.length > 0) return;
+  
+      const { error: insertError } = await supabase
+        .from("carrito")
+        .insert([{ id_user: userId, id_contenido: contenidoId }]);
+  
+      if (insertError) throw insertError;
+  
+      await this.fetchCarrito();
+    } catch (err) {
+      console.error("❌ Error al añadir al carrito:", err);
     }
   };
 
@@ -193,7 +180,19 @@ function Bienvenida() {
                   {contenido.nombre}
                 </p>
                 <div className="botones">
-                  <button onClick={() => agregarACarrito(contenido.id_contenido)} style={{ marginRight: '1rem' }}>🛒</button>
+                  <button 
+                    onClick={async () => {
+                      const usuario = await obtenerUsuario();
+                      if (!usuario) {
+                        alert('Debes iniciar sesión');
+                        return;
+                      }
+                      const mensaje = await handleAgregarAlCarrito(contenido.id_contenido);
+                      alert(mensaje);
+                    }}
+                    style={{ marginRight: '1rem' }}
+                    >
+                    🛒</button>
                   <button
                     onClick={async () => {
                       const usuario = await obtenerUsuario();
