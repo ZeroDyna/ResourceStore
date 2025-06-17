@@ -15,6 +15,7 @@ function Bienvenida() {
   const [busqueda, setBusqueda] = useState('');
   const [categoria, setCategoria] = useState('');
   const [subcategoria, setSubcategoria] = useState('');
+  const [usuario, setUsuario] = useState<{ nombre_usuario: string, saldo: number } | null>(null);
   const [page, setPage] = useState(1);
   const itemsPerPage = 12;
   const navigate = useNavigate();
@@ -80,16 +81,17 @@ function Bienvenida() {
   const currentContenidos = filteredContenidos.slice(startIndex, startIndex + itemsPerPage);
 
   // Helper para obtener usuario actual (por email)
-  const obtenerUsuario = async () => {
-    const email = sessionStorage.getItem('user_email');
-    if (!email) return null;
+ const obtenerUsuario = async () => {
+    const user_Id = localStorage.getItem('user_id');
+    if (!user_Id) return null;
     const { data: usuario } = await supabase
       .from('usuario')  
       .select('id_user, nombre_usuario, email, saldo')
-      .eq('email', email)
+      .eq('id_user', user_Id)
       .maybeSingle();
     return usuario;
   };
+
 
   const handleAgregarAlCarrito = async (contenidoId: number) => {
     try {
@@ -117,13 +119,28 @@ function Bienvenida() {
     }
   };
 
+useEffect(() => {
+  const cargarUsuario = async () => {
+    const usuarioData = await obtenerUsuario();
+    if (usuarioData) {
+      setUsuario(usuarioData);
+    }
+  };
+
+  cargarUsuario();
+}, []);
+
   return (
     <div className="principal-container">
       <header className="top-bar">
         <h1>Resources Store</h1>
         <div className="top-info">
-          <span>Mi saldo: ${/* puedes mostrar el saldo si lo guardas en sessionStorage o con el usuario */}</span>
-          <span>{sessionStorage.getItem('user_email') || 'Invitado'}</span>
+          <button onClick={() => alert('Ir a página de recarga')} className="btn-recargar">
+            🔄 Recargar
+          </button>
+          <span>Mi saldo: ${usuario?.saldo || 0}</span>
+          <span>{usuario?.nombre_usuario || 'Invitado'}</span>
+          
         </div>
       </header>
 

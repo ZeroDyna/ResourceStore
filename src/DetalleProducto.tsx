@@ -2,8 +2,6 @@ import React from 'react';
 import { NavigateFunction, useParams, useNavigate, Params } from 'react-router-dom';
 import { supabase } from './supabaseClient';
 import './DetalleProducto.css';
-import { agregarAFavoritos } from './Gestor_Favoritos';
-import { agregarACarrito } from './agregarAlCarrito';
 
 // HOC para pasar navigate y params a una clase
 function withNavigationAndParams(Component: any) {
@@ -22,7 +20,6 @@ type Contenido = {
   archivo?: string;
   formato?: string;
   precio?: number;
-  // Agrega aquí otros campos que realmente existan en la tabla contenido
 };
 
 type DetalleProductoProps = {
@@ -51,7 +48,6 @@ class DetalleProducto extends React.Component<DetalleProductoProps, DetalleProdu
   }
 
   componentDidUpdate(prevProps: DetalleProductoProps) {
-    // Detectar cambio de id_contenido y recargar si es necesario
     if (
       this.props.params.id_contenido !== prevProps.params.id_contenido ||
       this.props.params.id !== prevProps.params.id
@@ -61,12 +57,12 @@ class DetalleProducto extends React.Component<DetalleProductoProps, DetalleProdu
   }
 
   fetchContenido = async () => {
-    // Soporta /contenido/:id_contenido y /contenido/:id por compatibilidad
     const id = this.props.params.id_contenido || this.props.params.id;
     if (!id) {
       this.setState({ loading: false, error: 'ID de contenido no definido.', contenido: null });
       return;
     }
+
     this.setState({ loading: true, error: null });
 
     try {
@@ -78,44 +74,76 @@ class DetalleProducto extends React.Component<DetalleProductoProps, DetalleProdu
 
       if (error || !data) {
         this.setState({ error: 'No se pudo cargar el contenido.', contenido: null });
-        console.error('Error al cargar contenido:', error);
       } else {
         this.setState({ contenido: data, error: null });
       }
     } catch (err) {
-      console.error('Error inesperado:', err);
       this.setState({ error: 'Ocurrió un error inesperado.', contenido: null });
     } finally {
       this.setState({ loading: false });
     }
   };
 
-  handleAgregarCarrito = async () => {
-    const { contenido } = this.state;
-    if (!contenido) return;
+  handleAgregarAlCarrito = async (contenidoId: number) => {
+    try {
+      const userId = localStorage.getItem("user_id");
+      if (!userId) {
+        alert('Debes iniciar sesión');
+        return;
+      }
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      alert('Debes iniciar sesión');
-      return;
+      const { data: existente, error: existeError } = await supabase
+        .from("carrito")
+        .select("*")
+        .match({ id_user: userId, id_contenido: contenidoId });
+
+      if (existeError) throw existeError;
+      if (existente.length > 0) {
+        alert("Ya está en el carrito");
+        return;
+      }
+
+      const { error: insertError } = await supabase
+        .from("carrito")
+        .insert([{ id_user: userId, id_contenido: contenidoId }]);
+
+      if (insertError) throw insertError;
+
+      alert("Producto añadido al carrito");
+    } catch (err) {
+      console.error("❌ Error al añadir al carrito:", err);
     }
-
-    const mensaje = await agregarACarrito(contenido.id_contenido, user.id);
-    alert(mensaje);
   };
 
-  handleAgregarFavoritos = async () => {
-    const { contenido } = this.state;
-    if (!contenido) return;
+  handleAgregarFavoritos = async (contenidoId: number) => {
+    try {
+      const userId = localStorage.getItem("user_id");
+      if (!userId) {
+        alert('Debes iniciar sesión');
+        return;
+      }
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      alert('Debes iniciar sesión');
-      return;
+      const { data: existente, error: existeError } = await supabase
+        .from("favoritos")
+        .select("*")
+        .match({ id_user: userId, id_contenido: contenidoId });
+
+      if (existeError) throw existeError;
+      if (existente.length > 0) {
+        alert("Ya está en favoritos");
+        return;
+      }
+
+      const { error: insertError } = await supabase
+        .from("favoritos")
+        .insert([{ id_user: userId, id_contenido: contenidoId }]);
+
+      if (insertError) throw insertError;
+
+      alert("Producto añadido a favoritos");
+    } catch (err) {
+      console.error("❌ Error al añadir a favoritos:", err);
     }
-
-    const mensaje = await agregarAFavoritos(contenido.id_contenido, user.id);
-    alert(mensaje);
   };
 
   render() {
@@ -150,7 +178,6 @@ class DetalleProducto extends React.Component<DetalleProductoProps, DetalleProdu
             <button onClick={() => navigate(-1)} style={{ marginBottom: '1rem' }}>⬅ Volver</button>
 
             <h2>{contenido.nombre || 'Nombre no disponible'}</h2>
-            {/* Si tienes una imagen, usa el campo real, si no, muestra un placeholder */}
             <img
               src={contenido.archivo || 'https://via.placeholder.com/300'}
               alt={contenido.nombre || 'Recurso'}
@@ -159,18 +186,18 @@ class DetalleProducto extends React.Component<DetalleProductoProps, DetalleProdu
             <p><strong>Descripción:</strong> {contenido.descripcion || 'No disponible'}</p>
             <p><strong>Autor:</strong> {contenido.autor || 'No disponible'}</p>
             <p><strong>Formato:</strong> {contenido.formato || 'No disponible'}</p>
-            <p><strong>Precio:</strong> {contenido.precio  || 'No disponible'}</p>
+            <p><strong>Precio:</strong> {contenido.precio || 'No disponible'}</p>
 
             <div style={{ marginTop: '1.5rem' }}>
               <button
-                onClick={this.handleAgregarCarrito}
+                onClick={() => this.handleAgregarAlCarrito(contenido.id_contenido)}
                 style={{ marginRight: '1rem' }}
               >
                 🛒 Añadir al carrito
               </button>
 
               <button
-                onClick={this.handleAgregarFavoritos}
+                onClick={() => this.handleAgregarFavoritos(contenido.id_contenido)}
                 style={{ marginRight: '1rem' }}
               >
                 ❤️ Agregar a Favoritos
@@ -182,7 +209,7 @@ class DetalleProducto extends React.Component<DetalleProductoProps, DetalleProdu
         <footer className="footer">
           <span>© 2025 Resources Store</span>
           <div className="social">
-            <img src="https://img.freepik.com/vector-gratis/nuevo-diseno-icono-x-logotipo-twitter-2023_1017-45418.jpg?semt=ais_hybrid&w=740" alt="X" />
+            <img src="https://img.freepik.com/vector-gratis/nuevo-diseno-icono-x-logotipo-twitter-2023_1017-45418.jpg" alt="X" />
             <img src="https://cdn2.iconfinder.com/data/icons/2018-social-media-app-logos/1000/2018_social_media_popular_app_logo_instagram-512.png" alt="Instagram" />
             <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/LinkedIn_logo_initials.png/960px-LinkedIn_logo_initials.png" alt="LinkedIn" />
           </div>

@@ -32,14 +32,13 @@ function withHooks(Component) {
   };
 }
 
-type Producto = {
-  id: number;
+type Contenido = {
+  id_contenido: number;
   nombre: string;
   descripcion: string;
   autor?: string;
   precio: number;
-  calificacion?: number;
-  url_imagen?: string;
+  archivo?: string;
 };
 
 type FavoritosProps = {
@@ -51,7 +50,7 @@ type FavoritosProps = {
 };
 
 type FavoritosState = {
-  favoritos: Producto[];
+  favoritos: Contenido[];
   loading: boolean;
 };
 
@@ -70,11 +69,13 @@ class Favoritos extends React.Component<FavoritosProps, FavoritosState> {
 
   fetchFavoritos = async () => {
     try {
-      const { data: userData, error: userError } = await supabase.auth.getUser();
-      if (userError) throw userError;
-      const user = userData.user;
+      const userId = localStorage.getItem("user_id");
+      if (!userId) {
+        this.setState({ favoritos: [] });
+        return;
+      }
 
-      if (!user) {
+      if (!userId) {
         console.warn("⚠️ No hay usuario logueado");
         this.setState({ favoritos: [] });
         return;
@@ -82,8 +83,8 @@ class Favoritos extends React.Component<FavoritosProps, FavoritosState> {
 
       const { data: favoritosData, error: favoritosError } = await supabase
         .from("favoritos")
-        .select("id")
-        .eq("usuario_id", user.id);
+        .select("id_contenido")
+        .eq("id_user", userId);
 
       if (favoritosError) throw favoritosError;
       if (!favoritosData || favoritosData.length === 0) {
@@ -92,82 +93,96 @@ class Favoritos extends React.Component<FavoritosProps, FavoritosState> {
         return;
       }
 
-      const favoritoIds = favoritosData.map((fav: any) => fav.id);
-      const { data: detalleFavoritosData, error: detalleFavoritosError } = await supabase
-        .from("detalle_favorito")
-        .select("producto_id")
-        .in("favorito_id", favoritoIds);
+      const favoritoIds = favoritosData.map(item => item.id_contenido);
+      
+      const contenidosPromises = favoritoIds.map(async (contenidoId: number) => {
+      const { data, error } = await supabase
+        .from("contenido")
+        .select("id_contenido, nombre, descripcion, autor, precio, archivo")
+        .eq("id_contenido", contenidoId)
+        .single();
 
-      if (detalleFavoritosError) throw detalleFavoritosError;
-      if (!detalleFavoritosData || detalleFavoritosData.length === 0) {
-        console.warn("⚠️ No hay detalles de favoritos para estos favoritos");
-        this.setState({ favoritos: [] });
-        return;
-      }
-
-      const productosPromises = detalleFavoritosData.map(async (detalle: any) => {
-        const { data: productoData, error: productoError } = await supabase
-          .from("productos")
-          .select("id, nombre, descripcion, autor, precio, calificacion, url_imagen")
-          .eq("id", detalle.producto_id)
-          .single();
-
-        if (productoError) {
-          console.warn(`⚠️ Error al obtener producto ${detalle.producto_id}:`, productoError);
-          return null;
-        }
-
-        return productoData;
+        if (error) return null;
+        return data;
       });
 
-      const productosData = (await Promise.all(productosPromises)).filter(Boolean) as Producto[];
-      this.setState({ favoritos: productosData });
-    } catch (err) {
-      console.error("❌ Error al obtener favoritos:", err);
-    } finally {
-      this.setState({ loading: false });
-    }
-  };
+      const contenidosData = (await Promise.all(contenidosPromises)).filter(Boolean) as Contenido[];
+          this.setState({ favoritos: contenidosData });
+        } catch (err) {
+          console.error("❌ Error al obtener favoritos:", err);
+        } finally {
+          this.setState({ loading: false });
+        }
+        };
 
-  handleQuitarFavorito = async (productoId: number) => {
-    try {
-      const { data: detalleData, error: detalleError } = await supabase
-        .from("detalle_favorito")
-        .select("id")
-        .eq("producto_id", productoId);
+handleQuitarFavorito = async (contenidoId: number) => {
+  try {
+    const userId = localStorage.getItem("user_id");
+    if (!userId) return;
 
-      if (detalleError || !detalleData || detalleData.length === 0) {
-        throw new Error("No se encontró el detalle favorito para el producto dado.");
-      }
+    const { error: deleteError } = await supabase
+      .from("favoritos")
+      .delete()
+      .match({ id_user: userId, id_contenido: contenidoId });
 
-      const detalleFavoritoId = detalleData[0].id;
+    if (deleteError) throw deleteError;
 
-      const { error: deleteError } = await supabase
-        .from("detalle_favorito")
-        .delete()
-        .eq("id", detalleFavoritoId);
+    await this.fetchFavoritos();
+  } catch (err) {
+    console.error("❌ Error al quitar del carrito:", err);
+  }
+};
+handleAgregarAFavorito = async (contenidoId: number) => {
+  try {
+    const userId = localStorage.getItem("user_id");
+    if (!userId) return;
 
-      if (deleteError) throw deleteError;
+    // Verifica si ya está en el carrito
+    const { data: existente, error: existeError } = await supabase
+      .from("favoritos")
+      .select("*")
+      .match({ id_user: userId, id_contenido: contenidoId });
 
-      this.setState((prevState) => ({
-        favoritos: prevState.favoritos.filter((fav) => fav.id !== productoId),
-      }));
-    } catch (err) {
-      console.error("❌ Error al quitar favorito:", err);
-    }
-  };
+    if (existeError) throw existeError;
+    if (existente.length > 0) return;
 
-  handleAgregarCarrito = async (productoId: number) => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      alert('Debes iniciar sesión');
-      return;
-    }
+    const { error: insertError } = await supabase
+      .from("favoritos")
+      .insert([{ id_user: userId, id_contenido: contenidoId }]);
 
-    console.log('🔍 user:', user);
-    await agregarACarrito(productoId, user.id);
-  };
+    if (insertError) throw insertError;
 
+    await this.fetchFavoritos();
+  } catch (err) {
+    console.error("❌ Error al añadir al carrito:", err);
+  }
+};
+
+handleAgregarAlCarrito = async (contenidoId: number) => {
+  try {
+    const userId = localStorage.getItem("user_id");
+    if (!userId) return;
+
+    // Verifica si ya está en el carrito
+    const { data: existente, error: existeError } = await supabase
+      .from("carrito")
+      .select("*")
+      .match({ id_user: userId, id_contenido: contenidoId });
+
+    if (existeError) throw existeError;
+    if (existente.length > 0) return;
+
+    const { error: insertError } = await supabase
+      .from("carrito")
+      .insert([{ id_user: userId, id_contenido: contenidoId }]);
+
+    if (insertError) throw insertError;
+
+    await this.fetchFavoritos();
+  } catch (err) {
+    console.error("❌ Error al añadir al carrito:", err);
+  }
+};
   render() {
     const { favoritos, loading } = this.state;
     const { navigate } = this.props;
@@ -204,8 +219,8 @@ class Favoritos extends React.Component<FavoritosProps, FavoritosState> {
             <p>No tienes productos en favoritos.</p>
           ) : (
             favoritos.map((producto) => (
-              <div className="item" key={producto.id}>
-                <img src={producto.url_imagen || "https://via.placeholder.com/150"} alt={producto.nombre} />
+              <div className="item" key={producto.id_contenido}>
+                <img src={producto.archivo || "https://via.placeholder.com/150"} alt={producto.nombre} />
                 <div className="info">
                   <h3>{producto.nombre}</h3>
                   <p>{producto.descripcion}</p>
@@ -213,12 +228,12 @@ class Favoritos extends React.Component<FavoritosProps, FavoritosState> {
                   <p>Precio: ${producto.precio?.toFixed(2)}</p>
                   <div className="buttons">
                     <button
-                      onClick={() => this.handleAgregarCarrito(producto.id)}
+                      onClick={() => this.handleAgregarAlCarrito(producto.id_contenido)}
                       style={{ marginRight: '1rem' }}
                     >
                       🛒 Añadir al carrito
                     </button>
-                    <button className="btn-red" onClick={() => this.handleQuitarFavorito(producto.id)}>
+                    <button className="btn-red" onClick={() => this.handleQuitarFavorito(producto.id_contenido)}>
                       Quitar de favoritos
                     </button>
                   </div>

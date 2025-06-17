@@ -1,7 +1,9 @@
 import React from "react";
 import { NavigateFunction, useNavigate } from "react-router-dom";
 import { supabase } from "./supabaseClient";
+
 import "./Carrito.css";
+
 
 function withNavigation(Component: any) {
   return function WrappedComponent(props: any) {
@@ -142,6 +144,7 @@ handleAgregarAlCarrito = async (contenidoId: number) => {
     alert(`Gracias por tu compra. Total pagado: $${total.toFixed(2)}`);
     // Aquí puedes vaciar el carrito si deseas
   };
+  
 
   render() {
     const { carrito, loading } = this.state;
@@ -149,6 +152,9 @@ handleAgregarAlCarrito = async (contenidoId: number) => {
 
     return (
       <div className="container">
+        <header className="top-bar">
+          <h1>Resources Store</h1>
+        </header>
         <aside className="sidebar">
           <div className="menu">
             <p className="section-title">Navegación</p>
