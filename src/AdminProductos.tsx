@@ -1,251 +1,310 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import CarruselOfertas from './CarruselOfertas';
-import { traerContenido } from './traerContenido';
+import React, { useEffect, useState } from 'react';
 import { supabase } from './supabaseClient';
-import { agregarAFavoritos } from './Gestor_Favoritos';
-import './CarruselOfertas.css';
+import './AdminProductos.css';
 
-function Bienvenida() {
-  const [productos, setProductos] = useState<any[]>([]);
-  const [filteredProductos, setFilteredProductos] = useState<any[]>([]);
-  const [categorias, setCategorias] = useState<any[]>([]);
-  const [subcategorias, setSubcategorias] = useState<any[]>([]);
-  const [busqueda, setBusqueda] = useState('');
-  const [categoria, setCategoria] = useState('');
-  const [subcategoria, setSubcategoria] = useState('');
-  const [page, setPage] = useState(1);
-  const itemsPerPage = 12;
-  const navigate = useNavigate();
+interface Contenido {
+  id_contenido: number;
+  nombre: string;
+  autor: string;
+  archivo: string;
+  descripcion: string;
+  fecha_subida: string;
+  tipo: string;
+  formato: string;
+  tamanio: number | null;
+  calidad: string;
+  precio: number;
+  id_admin: number | null;
+  id_categoria: number | null;
+}
+
+export default function AdminContenido() {
+  const [contenido, setContenido] = useState<Contenido[]>([]);
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState<Omit<Contenido, 'id_contenido'>>({
+    nombre: '',
+    autor: '',
+    archivo: '',
+    descripcion: '',
+    fecha_subida: '',
+    tipo: '',
+    formato: '',
+    tamanio: null,
+    calidad: '',
+    precio: 0,
+    id_admin: null,
+    id_categoria: null,
+  });
+  const [editando, setEditando] = useState<Contenido | null>(null);
 
   useEffect(() => {
-    async function fetchDatos() {
-      const productosData = await traerContenido();
-      setProductos(productosData);
-      setFilteredProductos(productosData);
-
-      const { data: catData, error: catError } = await supabase.from('categorias').select('*');
-      if (!catError) setCategorias(catData || []);
-
-      const { data: subData, error: subError } = await supabase.from('subcategorias').select('*');
-      if (!subError) setSubcategorias(subData || []);
-    }
-
-    fetchDatos();
+    fetchContenido();
   }, []);
 
-  const filtrarProductos = (query: string, categoria: string, subcategoria: string) => {
-    let filtered = productos;
-
-    if (query) {
-      filtered = filtered.filter((producto) =>
-        producto.nombre.toLowerCase().includes(query.toLowerCase()) ||
-        producto.descripcion.toLowerCase().includes(query.toLowerCase())
-      );
-    }
-
-    if (categoria) {
-      filtered = filtered.filter((producto) => producto.categoria_id === parseInt(categoria));
-    }
-
-    if (subcategoria) {
-      filtered = filtered.filter((producto) => producto.subcategoria_id === parseInt(subcategoria));
-    }
-
-    setFilteredProductos(filtered);
-    setPage(1);
-  };
-
-  const handleBusqueda = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const query = e.target.value;
-    setBusqueda(query);
-    filtrarProductos(query, categoria, subcategoria);
-  };
-
-  const handleCategoriaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selected = e.target.value;
-    setCategoria(selected);
-    filtrarProductos(busqueda, selected, subcategoria);
-  };
-
-  const handleSubcategoriaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selected = e.target.value;
-    setSubcategoria(selected);
-    filtrarProductos(busqueda, categoria, selected);
-  };
-
-  const totalPages = Math.ceil(filteredProductos.length / itemsPerPage);
-  const startIndex = (page - 1) * itemsPerPage;
-  const currentProductos = filteredProductos.slice(startIndex, startIndex + itemsPerPage);
-
-  // Obtén el usuario desde sessionStorage y de la tabla users
-  const obtenerUsuario = async () => {
-    const email = sessionStorage.getItem('user_email');
-    if (!email) return null;
-    const { data: user } = await supabase
-      .from('users')
-      .select('id, nombre, email')
-      .eq('email', email)
-      .maybeSingle();
-    return user;
-  };
-
-  const agregarACarrito = async (productoId: number) => {
+  const fetchContenido = async () => {
     try {
-      const user = await obtenerUsuario();
-      if (!user) {
-        alert('Debes iniciar sesión');
+      const { data, error } = await supabase.from('contenido').select('*');
+      if (error) throw error;
+      setContenido(data || []);
+    } catch (e) {
+      alert("Error al listar contenido");
+    }
+  };
+
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => {
+    const { name, value, type } = e.target;
+    setForm((prev) => ({
+      ...prev,
+      [name]:
+        name === "tamanio" ||
+        name === "id_admin" ||
+        name === "id_categoria" ||
+        name === "precio"
+          ? value === "" ? null : Number(value)
+          : value,
+    }));
+  };
+
+  const limpiarForm = () => ({
+    nombre: '',
+    autor: '',
+    archivo: '',
+    descripcion: '',
+    fecha_subida: '',
+    tipo: '',
+    formato: '',
+    tamanio: null,
+    calidad: '',
+    precio: 0,
+    id_admin: null,
+    id_categoria: null,
+  });
+
+  const handleAgregar = async () => {
+    try {
+      // Clona el form y elimina cualquier id_contenido por si acaso
+      const { /* id_contenido, */ ...insertData } = form;
+      const cleanForm: any = { ...insertData };
+      Object.keys(cleanForm).forEach((key) => {
+        if (
+          cleanForm[key] === '' &&
+          (typeof cleanForm[key] === 'string' || cleanForm[key] === undefined)
+        ) {
+          cleanForm[key] = null;
+        }
+      });
+      if (!cleanForm.nombre) {
+        alert("El campo 'nombre' es obligatorio.");
         return;
       }
-
-      const { data: carrito, error: errorBuscar } = await supabase
-        .from('carritos')
-        .select('id')
-        .eq('usuario_id', user.id)
-        .maybeSingle();
-
-      let carritoId = carrito?.id;
-
-      if (!carritoId) {
-        const { data: nuevo, error: errorCrear } = await supabase
-          .from('carritos')
-          .insert({ usuario_id: user.id })
-          .select()
-          .single();
-
-        if (errorCrear) throw errorCrear;
-        carritoId = nuevo.id;
+      if (cleanForm.precio === null || cleanForm.precio === undefined) {
+        alert("El campo 'precio' es obligatorio.");
+        return;
       }
+      // NO enviar id_contenido
+      const { error } = await supabase.from('contenido').insert([cleanForm]);
+      if (error) throw error;
+      setForm(limpiarForm());
+      setShowForm(false);
+      fetchContenido();
+    } catch (e: any) {
+      alert("Error al agregar contenido: " + (e?.message || JSON.stringify(e)));
+    }
+  };
 
-      const { error: errorInsertar } = await supabase
-        .from('detalle_carrito')
-        .insert({ carrito_id: carritoId, producto_id: productoId });
+  const handleEditar = (cont: Contenido) => {
+    setEditando(cont);
+    setForm({
+      nombre: cont.nombre ?? '',
+      autor: cont.autor ?? '',
+      archivo: cont.archivo ?? '',
+      descripcion: cont.descripcion ?? '',
+      fecha_subida: cont.fecha_subida
+        ? cont.fecha_subida.substring(0, 16)
+        : '',
+      tipo: cont.tipo ?? '',
+      formato: cont.formato ?? '',
+      tamanio: cont.tamanio ?? null,
+      calidad: cont.calidad ?? '',
+      precio: cont.precio ?? 0,
+      id_admin: cont.id_admin ?? null,
+      id_categoria: cont.id_categoria ?? null,
+    });
+    setShowForm(true);
+  };
 
-      if (errorInsertar) throw errorInsertar;
+  const handleActualizar = async () => {
+    if (!editando) return;
+    try {
+      const cleanForm: any = { ...form };
+      Object.keys(cleanForm).forEach((key) => {
+        if (
+          cleanForm[key] === '' &&
+          (typeof cleanForm[key] === 'string' || cleanForm[key] === undefined)
+        ) {
+          cleanForm[key] = null;
+        }
+      });
+      if (!cleanForm.nombre) {
+        alert("El campo 'nombre' es obligatorio.");
+        return;
+      }
+      if (cleanForm.precio === null || cleanForm.precio === undefined) {
+        alert("El campo 'precio' es obligatorio.");
+        return;
+      }
+      const { error } = await supabase
+        .from('contenido')
+        .update(cleanForm)
+        .eq('id_contenido', editando.id_contenido);
+      if (error) throw error;
+      setEditando(null);
+      setShowForm(false);
+      setForm(limpiarForm());
+      fetchContenido();
+    } catch (e: any) {
+      alert("Error al actualizar contenido: " + (e?.message || JSON.stringify(e)));
+    }
+  };
 
-      alert('Producto agregado al carrito con éxito.');
-    } catch (error) {
-      console.error('Error al agregar al carrito:', error);
-      alert('Error al agregar al carrito.');
+  const handleEliminar = async (id_contenido: number) => {
+    if (!window.confirm("¿Eliminar contenido?")) return;
+    try {
+      const { error } = await supabase.from('contenido').delete().eq('id_contenido', id_contenido);
+      if (error) throw error;
+      fetchContenido();
+    } catch (e) {
+      alert("Error al eliminar contenido");
     }
   };
 
   return (
-    <div className="principal-container">
-      <header className="top-bar">
-        <h1>Resources Store</h1>
-        <div className="top-info">
-          <span>Mi saldo: $400</span>
-          <span>
-            {sessionStorage.getItem('user_email') || 'Invitado'}
-          </span>
-        </div>
-      </header>
-
-      <section>
-        <CarruselOfertas />
-      </section>
-
-      <main className="contenido-principal">
-        <aside className="sidebar">
-          <ul>
-            <li onClick={() => navigate("/Bienvenida")}>Inicio</li>
-            <li onClick={() => navigate("/carrito")}>Carrito</li>
-            <li onClick={() => navigate("/descargas")}>Descargas</li>
-            <li onClick={() => navigate("/favoritos")}>Favoritos</li>
-          </ul>
-        </aside>
-
-        <section className="recomendaciones">
-          <h3>Explorar Productos</h3>
-          <div className="filtros busqueda">
-            <input
-              type="text"
-              placeholder="Buscar contenido..."
-              value={busqueda}
-              onChange={handleBusqueda}
-            />
-            <select value={categoria} onChange={handleCategoriaChange}>
-              <option value="">Todas las Categorías</option>
-              {categorias.map((cat) => (
-                <option key={cat.id} value={cat.id}>{cat.nombre}</option>
-              ))}
-            </select>
-            <select value={subcategoria} onChange={handleSubcategoriaChange}>
-              <option value="">Todas las Subcategorías</option>
-              {subcategorias.map((sub) => (
-                <option key={sub.id} value={sub.id}>{sub.nombre}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="cards">
-            {currentProductos.map((producto) => (
-              <div className="card" key={producto.id}>
-                <img
-                  src={producto.url_imagen}
-                  alt={producto.nombre}
-                  onClick={() => navigate(`/producto/${producto.id}`)}
-                  style={{ cursor: 'pointer' }}
-                />
-                <p>{producto.nombre}</p>
-                <div className="botones">
-                  <button onClick={() => agregarACarrito(producto.id)} style={{ marginRight: '1rem' }}>🛒</button>
-                  <button
-                    onClick={async () => {
-                      const user = await obtenerUsuario();
-                      if (!user) {
-                        alert('Debes iniciar sesión');
-                        return;
-                      }
-                      const mensaje = await agregarAFavoritos(producto.id, user.id);
-                      alert(mensaje);
-                    }}
-                    style={{ marginRight: '1rem' }}
-                  >❤️</button>
-                </div>
+    <div className="admin-prod-container">
+      <h2 className="admin-title">Gestión de Contenido</h2>
+      <div className="admin-prod-list">
+        {contenido.map((cont) => (
+          <div className="admin-prod-card" key={cont.id_contenido}>
+            <div className="admin-prod-info">
+              <h4>{cont.nombre}</h4>
+              <p><b>Autor:</b> {cont.autor}</p>
+              <p><b>Descripción:</b> {cont.descripcion}</p>
+              <p><b>Archivo:</b> {cont.archivo}</p>
+              <p><b>Fecha subida:</b> {cont.fecha_subida}</p>
+              <p><b>Tipo:</b> {cont.tipo}</p>
+              <p><b>Formato:</b> {cont.formato}</p>
+              <p><b>Tamaño:</b> {cont.tamanio}</p>
+              <p><b>Calidad:</b> {cont.calidad}</p>
+              <p><b>Precio:</b> {cont.precio}</p>
+              <p><b>ID Admin:</b> {cont.id_admin}</p>
+              <p><b>ID Categoría:</b> {cont.id_categoria}</p>
+              <div className="admin-prod-actions">
+                <button className="modificar-btn" onClick={() => handleEditar(cont)}>
+                  Modificar
+                </button>
+                <button className="eliminar-btn" onClick={() => handleEliminar(cont.id_contenido)}>
+                  Eliminar
+                </button>
               </div>
-            ))}
+            </div>
           </div>
-
-          <div className="botones-paginacion">
-            <button onClick={() => setPage(page - 1)} disabled={page === 1}>&lt;</button>
-            {[...Array(totalPages)].map((_, index) => (
-              <button
-                key={index}
-                className={page === index + 1 ? 'activo' : ''}
-                onClick={() => setPage(index + 1)}
-              >
-                {index + 1}
-              </button>
-            ))}
-            <button onClick={() => setPage(page + 1)} disabled={page === totalPages}>&gt;</button>
+        ))}
+      </div>
+      <div className="admin-add-product-container">
+        <button
+          className="admin-add-product-btn"
+          onClick={() => {
+            setEditando(null);
+            setShowForm(!showForm);
+          }}
+        >
+          <span style={{ fontSize: 28, marginRight: 8 }}>+</span> Agregar Contenido
+        </button>
+      </div>
+      {showForm && (
+        <div className="admin-prod-form-modal">
+          <div className="admin-prod-form">
+            <h3>{editando ? "Editar contenido" : "Agregar contenido"}</h3>
+            <input
+              name="nombre"
+              value={form.nombre ?? ''}
+              onChange={handleChange}
+              placeholder="Nombre *"
+              required
+            />
+            <input name="autor" value={form.autor ?? ''} onChange={handleChange} placeholder="Autor" />
+            <input name="archivo" value={form.archivo ?? ''} onChange={handleChange} placeholder="Archivo" />
+            <textarea name="descripcion" value={form.descripcion ?? ''} onChange={handleChange} placeholder="Descripción" />
+            <input
+              name="fecha_subida"
+              value={form.fecha_subida ?? ''}
+              onChange={handleChange}
+              placeholder="Fecha subida"
+              type="datetime-local"
+            />
+            <input name="tipo" value={form.tipo ?? ''} onChange={handleChange} placeholder="Tipo" />
+            <input name="formato" value={form.formato ?? ''} onChange={handleChange} placeholder="Formato" />
+            <input
+              name="tamanio"
+              value={form.tamanio ?? ''}
+              onChange={handleChange}
+              placeholder="Tamaño"
+              type="number"
+              step="any"
+            />
+            <input name="calidad" value={form.calidad ?? ''} onChange={handleChange} placeholder="Calidad" />
+            <input
+              name="precio"
+              value={form.precio ?? ''}
+              onChange={handleChange}
+              placeholder="Precio"
+              type="number"
+              required
+              step="any"
+            />
+            <input
+              name="id_admin"
+              value={form.id_admin ?? ''}
+              onChange={handleChange}
+              placeholder="ID Admin"
+              type="number"
+            />
+            <input
+              name="id_categoria"
+              value={form.id_categoria ?? ''}
+              onChange={handleChange}
+              placeholder="ID Categoría"
+              type="number"
+            />
+            <div style={{ marginTop: 12 }}>
+              {editando ? (
+                <>
+                  <button className="modificar-btn" onClick={handleActualizar}>
+                    Actualizar
+                  </button>
+                  <button
+                    className="eliminar-btn"
+                    style={{ marginLeft: 8 }}
+                    onClick={() => {
+                      setEditando(null);
+                      setShowForm(false);
+                    }}
+                  >
+                    Cancelar
+                  </button>
+                </>
+              ) : (
+                <button className="modificar-btn" onClick={handleAgregar}>
+                  Agregar
+                </button>
+              )}
+            </div>
           </div>
-        </section>
-
-        <aside className="destacados">
-          <h4>Videos Destacados</h4>
-          <ul>
-            <li>Video1.MP4</li>
-            <li>Video2.AVI</li>
-            <li>Video3.MKV</li>
-          </ul>
-          <h4>Imágenes Destacadas</h4>
-          <ul>
-            <li>Imagen1.PNG</li>
-            <li>Imagen2.WEBP</li>
-            <li>Imagen3.JPG</li>
-          </ul>
-          <h4>Audios Destacados</h4>
-          <ul>
-            <li>Audio1.MP3</li>
-            <li>Audio2.WAV</li>
-            <li>Audio3.OGG</li>
-          </ul>
-        </aside>
-      </main>
+        </div>
+      )}
     </div>
   );
 }
-
-export default Bienvenida;

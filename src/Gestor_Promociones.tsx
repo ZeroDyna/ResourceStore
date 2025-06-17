@@ -1,29 +1,18 @@
 import { supabase } from './supabaseClient';
-
-export interface Promocion {
-  id_promocion: number;
-  id_admin: string;
-  porcentaje: number;
-  descripcion: string;
-  fecha_ini: string;
-  fecha_fin: string;
-  activa: boolean;
-  url_banner: string;
-  id_contenido?: number | null;
-}
+import { Promocion } from './Promocion';
 
 export const Gestor_Promocion = {
   listarPromociones: async (): Promise<Promocion[]> => {
     const { data, error } = await supabase
       .from('promociones')
-      .select('*');
+      .select('*')
+      .eq('activa', true); // Solo activas
     if (error) throw error;
     return data || [];
   },
 
   crearPromocion: async (promo: Omit<Promocion, 'id_promocion'>) => {
-    // Limpia strings vacíos a null
-    const cleanPromo = { ...promo };
+    const cleanPromo = { activa: true, ...promo }; // Fuerza activa=true al crear
     Object.keys(cleanPromo).forEach(k => {
       if (cleanPromo[k as keyof typeof cleanPromo] === '') cleanPromo[k as keyof typeof cleanPromo] = null as any;
     });
@@ -48,9 +37,10 @@ export const Gestor_Promocion = {
   },
 
   eliminarPromocion: async (id_promocion: number) => {
+    // Borrado lógico: activa = false
     const { error } = await supabase
       .from('promociones')
-      .delete()
+      .update({ activa: false })
       .eq('id_promocion', id_promocion);
     if (error) throw error;
     return true;
