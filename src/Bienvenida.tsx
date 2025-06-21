@@ -4,8 +4,10 @@ import CarruselOfertas from './CarruselOfertas';
 import { traerContenido } from './traerContenido'; // Ajusta el nombre si cambiaste el archivo.
 import { supabase } from './supabaseClient';
 import { agregarAFavoritos } from './Gestor_Favoritos';
+import { Link } from 'react-router-dom';
 import { agregarACarrito } from './agregarAlCarrito';
 import './CarruselOfertas.css';
+import Header from './Header';
 
 function Bienvenida() {
   const [contenidos, setContenidos] = useState<any[]>([]);
@@ -105,7 +107,10 @@ function Bienvenida() {
         .match({ id_user: userId, id_contenido: contenidoId });
   
       if (existeError) throw existeError;
-      if (existente.length > 0) return;
+      if (existente.length > 0){ 
+        alert("Ya está en el carrito");
+        return;
+      }
   
       const { error: insertError } = await supabase
         .from("carrito")
@@ -113,7 +118,7 @@ function Bienvenida() {
   
       if (insertError) throw insertError;
   
-      await this.fetchCarrito();
+      return 'Producto agregado a carrito con éxito.';
     } catch (err) {
       console.error("❌ Error al añadir al carrito:", err);
     }
@@ -132,17 +137,7 @@ useEffect(() => {
 
   return (
     <div className="principal-container">
-      <header className="top-bar">
-        <h1>Resources Store</h1>
-        <div className="top-info">
-          <button onClick={() => alert('Ir a página de recarga')} className="btn-recargar">
-            🔄 Recargar
-          </button>
-          <span>Mi saldo: ${usuario?.saldo || 0}</span>
-          <span>{usuario?.nombre_usuario || 'Invitado'}</span>
-          
-        </div>
-      </header>
+      <Header />
 
       <section>
         <CarruselOfertas />

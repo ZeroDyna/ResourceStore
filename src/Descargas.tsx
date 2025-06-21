@@ -1,5 +1,6 @@
 import './Descargas.css'
 import './CarruselOfertas.css'
+import Header from './Header';
 
 type PrincipalProps = {
   setVista: (vista: string) => void;
@@ -12,15 +13,7 @@ return (
     <title>Resources Store - Historial</title>
     <link rel="stylesheet" href="CarruselOfertas.css" />
     <link rel="stylesheet" href="Descargas.css" />
-    <header className="topbar">
-      <div className="store-name">Resources store</div>
-      <div className="topbar-right">
-        <button className="btn-recargar">Recargar</button>
-        <span className="saldo">Mi saldo: $400</span>
-        <span className="username">USER_1</span>
-        <div className="user-icon"> </div>
-      </div>
-    </header>
+    <Header />
     <div className="container">
       <div className="sidebar">
         <div className="sidebar-section">

@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavigateFunction, useParams, useNavigate, Params } from 'react-router-dom';
 import { supabase } from './supabaseClient';
+import Header from './Header';
 import './DetalleProducto.css';
 
 // HOC para pasar navigate y params a una clase
@@ -156,13 +157,7 @@ class DetalleProducto extends React.Component<DetalleProductoProps, DetalleProdu
 
     return (
       <div className="detalle-producto-container">
-        <header className="top-bar">
-          <h1>Resources Store</h1>
-          <div className="top-info">
-            <span>Mi saldo: $400</span>
-            <span>USER_1</span>
-          </div>
-        </header>
+        <Header />
 
         <main className="contenido-principal">
           <aside className="sidebar">

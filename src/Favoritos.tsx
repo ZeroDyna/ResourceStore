@@ -1,5 +1,6 @@
-import React from "react";
 import { supabase } from "./supabaseClient";
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { agregarACarrito } from './agregarAlCarrito';
 import {
   useNavigate,
@@ -8,6 +9,7 @@ import {
   useSearchParams,
   useNavigationType
 } from "react-router-dom";
+import Header from './Header';
 import "./favoritos.css";
 
 // HOC para pasar hooks a la clase
@@ -52,6 +54,10 @@ type FavoritosProps = {
 type FavoritosState = {
   favoritos: Contenido[];
   loading: boolean;
+  usuario: {
+    nombre_usuario: string;
+    saldo: number;
+  } | null;
 };
 
 class Favoritos extends React.Component<FavoritosProps, FavoritosState> {
@@ -60,12 +66,20 @@ class Favoritos extends React.Component<FavoritosProps, FavoritosState> {
     this.state = {
       favoritos: [],
       loading: true,
+      usuario: null,
     };
   }
 
-  componentDidMount() {
-    this.fetchFavoritos();
-  }
+componentDidMount() {
+  const init = async () => {
+    await Promise.all([
+      this.fetchUsuario(),
+      this.fetchFavoritos()
+    ]);
+  };
+
+  init();
+}
 
   fetchFavoritos = async () => {
     try {
@@ -154,7 +168,7 @@ handleAgregarAFavorito = async (contenidoId: number) => {
 
     await this.fetchFavoritos();
   } catch (err) {
-    console.error("❌ Error al añadir al carrito:", err);
+    console.error("❌ Error al añadir a favoritos:", err);
   }
 };
 
@@ -183,12 +197,33 @@ handleAgregarAlCarrito = async (contenidoId: number) => {
     console.error("❌ Error al añadir al carrito:", err);
   }
 };
+
+fetchUsuario = async () => {
+  try {
+    const userId = localStorage.getItem("user_id");
+    if (!userId) return;
+
+    const { data, error } = await supabase
+      .from("usuario")
+      .select("nombre_usuario, saldo")
+      .eq("id_user", userId)
+      .single();
+
+    if (error) throw error;
+
+    this.setState({ usuario: data });
+  } catch (err) {
+    console.error("❌ Error al obtener usuario:", err);
+  }
+};
+
   render() {
     const { favoritos, loading } = this.state;
     const { navigate } = this.props;
 
     return (
       <div className="container">
+        <Header />
         <aside className="sidebar">
           <div className="menu">
             <p className="section-title">Navegación</p>
