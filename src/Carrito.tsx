@@ -341,7 +341,7 @@ handleEnviarRegalo = async (usuarioDestino: string, mensaje: string) => {
     const { data: regalo, error: regaloError } = await supabase
       .from("Regalo")
       .insert([{
-        ID_user_Usuario_remitenete: parseInt(userId,10),
+        ID_user_Usuario_remitente: parseInt(userId,10),
         ID_user_Usuario_destino: destinatario.id_user,
         ID_contenido_Contenido: contenido.id_contenido,
         mensaje: mensaje.trim(),
@@ -463,19 +463,6 @@ handleCerrarModal = () => {
                       >
                         Quitar de carrito
                       </button>
-                      {contenido.archivo_contenido ? (
-                        <a
-                          className="btn-black"
-                          href={contenido.archivo_contenido}
-                          download
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          Descargar
-                        </a>
-                      ) : (
-                        <button className="btn-disabled" disabled>No disponible</button>
-                      )}
                       
                     </div>
                   </div>

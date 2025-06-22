@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import './RegaloModal.css';
 
 interface Props {
   contenidoId: number;
