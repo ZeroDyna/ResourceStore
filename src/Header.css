@@ -1,0 +1,77 @@
+/* Fuente general */
+.top-bar,
+.top-info {
+  font-family: 'Poppins', sans-serif;
+}
+
+/* Barra superior */
+.top-bar {
+  background-color: #5e2a84; /* morado intermedio */
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 32px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+/* Título de la tienda */
+.top-bar h1 {
+  font-size: 1.8rem;
+  font-weight: 600;
+  margin: 0;
+  color: #fff;
+}
+
+/* Información a la derecha */
+.top-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* Botón de recarga */
+.btn-recargar {
+  background-color: #8e44ad; /* morado más brillante */
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.btn-recargar:hover {
+  background-color: #732d91;
+}
+
+/* Botón de sesión */
+.top-info button {
+  background-color: transparent;
+  color: #fff;
+  border: 1px solid #ccc;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.top-info button:hover {
+  background-color: #fff;
+  color: #5e2a84;
+}
+
+/* Nombre de usuario con efecto */
+.top-info span {
+  font-size: 1rem;
+  color: #fff;
+}
+
+/* Enlace del nombre de usuario */
+.top-info span:hover {
+  color: #e1d3ff;
+}

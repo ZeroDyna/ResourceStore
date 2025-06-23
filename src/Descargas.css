@@ -1,118 +1,148 @@
 .contenido {
-    flex-grow: 1;
-    padding: 20px;
-    background: white;
-  }
-  
-  .buscador {
-    width: 100%;
-    padding: 8px 10px;
-    margin-bottom: 20px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-  }
-  
-  h2 {
-    margin-top: 30px;
-  }
-  
-  .recurso {
-    display: flex;
-    background: #f9f9f9;
-    border-radius: 8px;
-    margin-bottom: 15px;
-    padding: 10px;
-    box-shadow: 0 0 4px rgba(0,0,0,0.1);
-  }
-  
-  .recurso img {
-    width: 60px;
-    height: 60px;
-    margin-right: 15px;
-    border-radius: 8px;
-  }
-  
-  .recurso p {
-    margin: 5px 0;
-  }
-  
-  .acciones {
-    margin-top: 10px;
-  }
-  
-  .acciones button {
-    margin-right: 10px;
-    padding: 6px 12px;
-    border: none;
-    border-radius: 20px;
-    font-weight: bold;
-    cursor: pointer;
-  }
-  
-  .regalar {
-    background: gold;
-  }
-  
-  .descargar {
-    background: limegreen;
-    color: white;
-  }
-  
-  .fecha, .fecha-compra {
-    font-size: 0.8em;
-    color: #666;
-  }
-  
-  .ver-todo {
-    display: block;
-    margin-top: 10px;
-    font-weight: bold;
-    text-align: right;
-    text-decoration: none;
-    color: black;
-  }
-  
-  .topbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: #2c2c2c;
-    color: white;
-    padding: 10px 20px;
-    font-family: 'Segoe UI', sans-serif;
-  }
-  
-  .store-name {
-    font-size: 1.5em;
-    font-weight: bold;
-  }
-  
-  .topbar-right {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-  }
-  
-  .btn-recargar {
-    background: #9b4dff;
-    color: white;
-    border: none;
-    padding: 5px 10px;
-    border-radius: 4px;
-    font-size: 0.9em;
-    cursor: pointer;
-  }
-  
-  .btn-recargar:hover {
-    background: #7a3ecc;
-  }
-  
-  .saldo, .username {
-    font-size: 0.95em;
-  }
-  
-  .user-icon {
-    font-size: 1.2em;
-    cursor: pointer;
-  }
-  
+  flex-grow: 1;
+  padding: 30px;
+  background: #f3f0fa;
+  font-family: 'Poppins', sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.buscador {
+  width: 100%;
+  padding: 10px 14px;
+  margin-bottom: 25px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 1em;
+  outline: none;
+  transition: 0.2s ease;
+}
+.buscador:focus {
+  border-color: #9b4dff;
+}
+
+h2 {
+  font-size: 1.5rem;
+  color: #4b2991;
+  margin-bottom: 20px;
+}
+
+.recurso {
+  display: flex;
+  align-items: flex-start;
+  background: white;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  padding: 15px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.07);
+  gap: 15px;
+}
+
+.recurso img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.recurso p {
+  margin: 4px 0;
+  line-height: 1.4;
+  color: #333;
+}
+
+.fecha, .fecha-compra {
+  font-size: 0.85em;
+  color: #666;
+}
+
+
+.acciones {
+  margin-top: 12px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+
+.acciones button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 30px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.9em;
+  transition: background 0.2s ease;
+}
+
+.descargar {
+  background: #7c3aed;
+  color: white;
+}
+.descargar:hover {
+  background: #5b21b6;
+}
+
+.regalar {
+  background: #facc15;
+  color: #333;
+}
+.regalar:hover {
+  background: #eab308;
+}
+
+.ver-todo {
+  display: block;
+  margin-top: 10px;
+  font-weight: bold;
+  text-align: right;
+  text-decoration: none;
+  color: #4b2991;
+}
+
+.mensaje-regalo {
+  background: #f3e8ff;
+  padding: 8px 12px;
+  border-left: 4px solid #c084fc;
+  border-radius: 6px;
+  margin-top: 8px;
+  font-size: 0.9em;
+  color: #5b21b6;
+  max-width: 500px;
+}
+
+section.descargados, section.no-descargados {
+  width: 100%;
+  max-width: 700px;
+  margin-bottom: 40px;
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 24px;
+  background: #3f3f46;
+  color: white;
+  font-size: 0.9em;
+  border-top: 2px solid #6d28d9;
+  margin-top: 40px;
+}
+
+.footer .social {
+  display: flex;
+  gap: 16px;
+}
+
+.footer .social img {
+  width: 28px;
+  height: 28px;
+  filter: brightness(0) invert(1); /* blanco */
+  transition: transform 0.2s ease;
+}
+
+.footer .social img:hover {
+  transform: scale(1.1);
+}  

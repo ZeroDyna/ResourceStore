@@ -162,6 +162,7 @@ class DetalleProducto extends React.Component<DetalleProductoProps, DetalleProdu
         <main className="contenido-principal">
           <aside className="sidebar">
             <ul>
+              <p className="section-title">Navegación</p>
               <li onClick={() => navigate("/Bienvenida")}>Inicio</li>
               <li onClick={() => navigate("/carrito")}>Carrito</li>
               <li onClick={() => navigate("/descargas")}>Descargas</li>
@@ -170,7 +171,7 @@ class DetalleProducto extends React.Component<DetalleProductoProps, DetalleProdu
           </aside>
 
           <section className="recomendaciones">
-            <button onClick={() => navigate(-1)} style={{ marginBottom: '1rem' }}>⬅ Volver</button>
+            
 
             <h2>{contenido.nombre || 'Nombre no disponible'}</h2>
             <img
@@ -201,14 +202,14 @@ class DetalleProducto extends React.Component<DetalleProductoProps, DetalleProdu
           </section>
         </main>
 
-        <footer className="footer">
-          <span>© 2025 Resources Store</span>
-          <div className="social">
-            <img src="https://img.freepik.com/vector-gratis/nuevo-diseno-icono-x-logotipo-twitter-2023_1017-45418.jpg" alt="X" />
-            <img src="https://cdn2.iconfinder.com/data/icons/2018-social-media-app-logos/1000/2018_social_media_popular_app_logo_instagram-512.png" alt="Instagram" />
-            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/LinkedIn_logo_initials.png/960px-LinkedIn_logo_initials.png" alt="LinkedIn" />
-          </div>
-        </footer>
+      <footer className="footer">
+        <span>© 2025 Resources Store</span>
+        <div className="social">
+          <img src="https://img.icons8.com/ios-filled/50/twitterx--v1.png" alt="X" />
+          <img src="https://img.icons8.com/ios-filled/50/instagram-new--v1.png" alt="Instagram" />
+          <img src="https://img.icons8.com/ios-filled/50/linkedin.png" alt="LinkedIn" />
+        </div>
+      </footer>
       </div>
     );
   }

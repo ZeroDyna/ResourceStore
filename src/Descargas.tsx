@@ -116,7 +116,6 @@ const handleDescargar = async (item: any) => {
         </aside>
 
         <main className="contenido">
-          <input type="text" className="buscador" placeholder="🔍 Buscar" />
 
           {loading ? (
             <p>Cargando tus descargas...</p>
@@ -197,9 +196,9 @@ const handleDescargar = async (item: any) => {
       <footer className="footer">
         <span>© 2025 Resources Store</span>
         <div className="social">
-          <img src="https://img.freepik.com/vector-gratis/nuevo-diseno-icono-x-logotipo-twitter-2023_1017-45418.jpg?semt=ais_hybrid&w=740" alt="X" />
-          <img src="https://cdn2.iconfinder.com/data/icons/2018-social-media-app-logos/1000/2018_social_media_popular_app_logo_instagram-512.png" alt="Instagram" />
-          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/LinkedIn_logo_initials.png/960px-LinkedIn_logo_initials.png" alt="LinkedIn" />
+          <img src="https://img.icons8.com/ios-filled/50/twitterx--v1.png" alt="X" />
+          <img src="https://img.icons8.com/ios-filled/50/instagram-new--v1.png" alt="Instagram" />
+          <img src="https://img.icons8.com/ios-filled/50/linkedin.png" alt="LinkedIn" />
         </div>
       </footer>
     </>

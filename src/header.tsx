@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import PerfilUsuario from './PerfilUsuario'; // Asegúrate de que la ruta sea correcta
+import './Header.css';
 
 const Header = () => {
   const navigate = useNavigate();

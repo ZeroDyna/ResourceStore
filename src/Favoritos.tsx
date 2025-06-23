@@ -233,12 +233,6 @@ fetchUsuario = async () => {
               <li onClick={() => navigate("/descargas")}>Descargas</li>
               <li onClick={() => navigate("/favoritos")} className="active">Favoritos</li>
             </ul>
-            <p className="section-title">Categorías</p>
-            <ul>
-              <li>Videos</li>
-              <li>Audios</li>
-              <li>Imágenes</li>
-            </ul>
           </div>
           <div className="chat-box">
             <p>¡Explora tus favoritos!</p>
