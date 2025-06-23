@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from "react-router-dom";
 import { Gestor_Categoria, Categoria } from './Gestor_categoria';
 import './AdminCategorias.css';
 
@@ -12,10 +13,9 @@ export default function AdminCategorias() {
     id_admin: null,
   });
   const [editando, setEditando] = useState<Categoria | null>(null);
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  useEffect(() => { fetchData(); }, []);
 
   const fetchData = async () => {
     try {
@@ -102,27 +102,57 @@ export default function AdminCategorias() {
 
   return (
     <div className="admin-cat-container">
-      <h2 className="admin-title">Gestión de Categorías</h2>
+      <h2 className="admin-title">
+        <span className="highlight-celeste">Gestión</span> de <span className="highlight-naranja">Categorías</span>
+        <br></br>
+
+      </h2>
+      <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '16px', marginBottom: '20px' }}>
+  <button
+    className="btn btn-celeste"
+    onClick={() => navigate(-1)}
+  >
+    ← Volver
+  </button>
+  <button
+    className="btn btn-celeste admin-add-cat-btn"
+    onClick={() => {
+      setEditando(null);
+      setShowForm(!showForm);
+    }}
+  >
+    <span style={{ fontSize: 28, marginRight: 8 }}>＋</span> Nueva Categoría
+  </button>
+</div>
       <div className="admin-cat-list">
         {categorias.map((cat) => (
           <div className="admin-cat-card" key={cat.id_categoria}>
             <div className="admin-cat-info">
-              <h4>{cat.nombre}</h4>
+              <h4>
+                {cat.nombre}
+                <span className="admin-cat-idchip">ID {cat.id_categoria}</span>
+              </h4>
               <p className="admin-cat-desc">
                 {cat.id_categoria_padre
-                  ? `Subcategoría de: ${
-                    categorias.find(c => c.id_categoria === cat.id_categoria_padre)?.nombre || 'N/A'
-                  }`
-                  : "Categoría principal"}
+                  ? (
+                    <span>
+                      Subcategoría de:&nbsp;
+                      <span className="highlight-celeste">
+                        {categorias.find(c => c.id_categoria === cat.id_categoria_padre)?.nombre || 'N/A'}
+                      </span>
+                    </span>
+                  )
+                  : <span className="highlight-naranja">Categoría principal</span>}
               </p>
-              <p>
-                <b>ID Admin:</b> {cat.id_admin ?? "N/A"}
+              <p style={{margin:0, fontSize:'0.98rem'}}>
+                <b className="highlight-celeste">Admin:</b>{" "}
+                <span>{cat.id_admin ?? "N/A"}</span>
               </p>
               <div className="admin-cat-actions">
-                <button className="modificar-btn" onClick={() => handleEditar(cat)}>
+                <button className="btn btn-celeste" onClick={() => handleEditar(cat)}>
                   Modificar
                 </button>
-                <button className="eliminar-btn" onClick={() => handleEliminar(cat.id_categoria)}>
+                <button className="btn btn-naranja" onClick={() => handleEliminar(cat.id_categoria)}>
                   Eliminar
                 </button>
               </div>
@@ -130,21 +160,17 @@ export default function AdminCategorias() {
           </div>
         ))}
       </div>
-      <div className="admin-add-cat-container">
-        <button
-          className="admin-add-cat-btn"
-          onClick={() => {
-            setEditando(null);
-            setShowForm(!showForm);
-          }}
-        >
-          <span style={{ fontSize: 28, marginRight: 8 }}>+</span> Agregar Categoría
-        </button>
-      </div>
+      
       {showForm && (
         <div className="admin-cat-form-modal">
           <div className="admin-cat-form">
-            <h3>{editando ? "Editar categoría" : "Agregar categoría"}</h3>
+            
+            <h3 style={{marginBottom:6, color:'var(--celeste)', fontWeight:800, fontSize:'1.3rem'}}>
+              {editando
+                ? <span><span className="highlight-celeste">Editar</span> categoría</span>
+                : <span><span className="highlight-celeste">Agregar</span> categoría</span>
+              }
+            </h3>
             <input
               name="id_categoria"
               type="number"
@@ -152,7 +178,8 @@ export default function AdminCategorias() {
               onChange={handleChange}
               placeholder="ID Categoría"
               required
-              disabled={!!editando} // No permitir cambiar id_categoria al editar
+              disabled={!!editando}
+              className="input-bonito"
             />
             <input
               name="nombre"
@@ -160,11 +187,13 @@ export default function AdminCategorias() {
               onChange={handleChange}
               placeholder="Nombre de la categoría"
               required
+              className="input-bonito"
             />
             <select
               name="id_categoria_padre"
               value={form.id_categoria_padre ?? ""}
               onChange={handleChange}
+              className="input-bonito"
             >
               <option value="" key="root">Categoría principal</option>
               {categorias
@@ -181,16 +210,16 @@ export default function AdminCategorias() {
               value={form.id_admin ?? ""}
               onChange={handleChange}
               placeholder="ID Admin"
+              className="input-bonito"
             />
-            <div style={{ marginTop: 12 }}>
+            <div style={{ marginTop: 12, display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
               {editando ? (
-                <>
-                  <button className="modificar-btn" onClick={handleActualizar}>
+                <>  
+                  <button className="btn btn-celeste" onClick={handleActualizar}>
                     Actualizar
                   </button>
                   <button
-                    className="eliminar-btn"
-                    style={{ marginLeft: 8 }}
+                    className="btn btn-naranja"
                     onClick={() => {
                       setEditando(null);
                       setShowForm(false);
@@ -200,7 +229,7 @@ export default function AdminCategorias() {
                   </button>
                 </>
               ) : (
-                <button className="modificar-btn" onClick={handleAgregar}>
+                <button className="btn btn-celeste" onClick={handleAgregar}>
                   Agregar
                 </button>
               )}
