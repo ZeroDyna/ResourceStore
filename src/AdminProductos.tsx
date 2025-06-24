@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from "react-router-dom";
 import { supabase } from './supabaseClient';
 import './AdminProductos.css';
 
@@ -7,299 +8,200 @@ interface Contenido {
   nombre: string;
   autor: string;
   archivo: string;
-  descripcion: string;
   fecha_subida: string;
   tipo: string;
   formato: string;
-  tamanio: number | null;
-  calidad: string;
-  precio: number;
-  id_admin: number | null;
-  id_categoria: number | null;
 }
 
 export default function AdminContenido() {
   const [contenido, setContenido] = useState<Contenido[]>([]);
-  const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState<Omit<Contenido, 'id_contenido'>>({
     nombre: '',
     autor: '',
     archivo: '',
-    descripcion: '',
     fecha_subida: '',
     tipo: '',
     formato: '',
-    tamanio: null,
-    calidad: '',
-    precio: 0,
-    id_admin: null,
-    id_categoria: null,
   });
   const [editando, setEditando] = useState<Contenido | null>(null);
+  const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    fetchContenido();
+    obtenerContenido();
   }, []);
 
-  const fetchContenido = async () => {
-    try {
-      const { data, error } = await supabase.from('contenido').select('*');
-      if (error) throw error;
-      setContenido(data || []);
-    } catch (e) {
-      alert("Error al listar contenido");
+  const obtenerContenido = async () => {
+    const { data, error } = await supabase.from('contenido').select('*');
+    if (error) {
+      alert("Error al obtener contenido");
+      return;
     }
+    setContenido(data || []);
   };
 
-  const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+  const limpiarFormulario = () => {
+    setForm({
+      nombre: '',
+      autor: '',
+      archivo: '',
+      fecha_subida: '',
+      tipo: '',
+      formato: '',
+    });
+    setEditando(null);
+  };
+
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
-    const { name, value, type } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]:
-        name === "tamanio" ||
-        name === "id_admin" ||
-        name === "id_categoria" ||
-        name === "precio"
-          ? value === "" ? null : Number(value)
-          : value,
-    }));
+    const { name, value } = e.target;
+    setForm(prev => ({ ...prev, [name]: value }));
   };
 
-  const limpiarForm = () => ({
-    nombre: '',
-    autor: '',
-    archivo: '',
-    descripcion: '',
-    fecha_subida: '',
-    tipo: '',
-    formato: '',
-    tamanio: null,
-    calidad: '',
-    precio: 0,
-    id_admin: null,
-    id_categoria: null,
-  });
+  const prepararDatos = () => {
+    const datos = { ...form };
+    Object.keys(datos).forEach(key => {
+      if (datos[key as keyof typeof datos] === '') {
+        datos[key as keyof typeof datos] = null;
+      }
+    });
+    return datos;
+  };
 
   const handleAgregar = async () => {
-    try {
-      // Clona el form y elimina cualquier id_contenido por si acaso
-      const { /* id_contenido, */ ...insertData } = form;
-      const cleanForm: any = { ...insertData };
-      Object.keys(cleanForm).forEach((key) => {
-        if (
-          cleanForm[key] === '' &&
-          (typeof cleanForm[key] === 'string' || cleanForm[key] === undefined)
-        ) {
-          cleanForm[key] = null;
-        }
-      });
-      if (!cleanForm.nombre) {
-        alert("El campo 'nombre' es obligatorio.");
-        return;
-      }
-      if (cleanForm.precio === null || cleanForm.precio === undefined) {
-        alert("El campo 'precio' es obligatorio.");
-        return;
-      }
-      // NO enviar id_contenido
-      const { error } = await supabase.from('contenido').insert([cleanForm]);
-      if (error) throw error;
-      setForm(limpiarForm());
-      setShowForm(false);
-      fetchContenido();
-    } catch (e: any) {
-      alert("Error al agregar contenido: " + (e?.message || JSON.stringify(e)));
+    const datos = prepararDatos();
+    if (!datos.nombre) {
+      alert("El campo 'nombre' es obligatorio.");
+      return;
     }
-  };
-
-  const handleEditar = (cont: Contenido) => {
-    setEditando(cont);
-    setForm({
-      nombre: cont.nombre ?? '',
-      autor: cont.autor ?? '',
-      archivo: cont.archivo ?? '',
-      descripcion: cont.descripcion ?? '',
-      fecha_subida: cont.fecha_subida
-        ? cont.fecha_subida.substring(0, 16)
-        : '',
-      tipo: cont.tipo ?? '',
-      formato: cont.formato ?? '',
-      tamanio: cont.tamanio ?? null,
-      calidad: cont.calidad ?? '',
-      precio: cont.precio ?? 0,
-      id_admin: cont.id_admin ?? null,
-      id_categoria: cont.id_categoria ?? null,
-    });
-    setShowForm(true);
+    const { error } = await supabase.from('contenido').insert([datos]);
+    if (error) {
+      alert("Error al agregar contenido.");
+      return;
+    }
+    obtenerContenido();
+    limpiarFormulario();
+    setMostrarFormulario(false);
   };
 
   const handleActualizar = async () => {
     if (!editando) return;
-    try {
-      const cleanForm: any = { ...form };
-      Object.keys(cleanForm).forEach((key) => {
-        if (
-          cleanForm[key] === '' &&
-          (typeof cleanForm[key] === 'string' || cleanForm[key] === undefined)
-        ) {
-          cleanForm[key] = null;
-        }
-      });
-      if (!cleanForm.nombre) {
-        alert("El campo 'nombre' es obligatorio.");
-        return;
-      }
-      if (cleanForm.precio === null || cleanForm.precio === undefined) {
-        alert("El campo 'precio' es obligatorio.");
-        return;
-      }
-      const { error } = await supabase
-        .from('contenido')
-        .update(cleanForm)
-        .eq('id_contenido', editando.id_contenido);
-      if (error) throw error;
-      setEditando(null);
-      setShowForm(false);
-      setForm(limpiarForm());
-      fetchContenido();
-    } catch (e: any) {
-      alert("Error al actualizar contenido: " + (e?.message || JSON.stringify(e)));
+    const datos = prepararDatos();
+    if (!datos.nombre) {
+      alert("El campo 'nombre' es obligatorio.");
+      return;
     }
+    const { error } = await supabase
+      .from('contenido')
+      .update(datos)
+      .eq('id_contenido', editando.id_contenido);
+    if (error) {
+      alert("Error al actualizar contenido.");
+      return;
+    }
+    obtenerContenido();
+    limpiarFormulario();
+    setMostrarFormulario(false);
   };
 
-  const handleEliminar = async (id_contenido: number) => {
-    if (!window.confirm("¿Eliminar contenido?")) return;
-    try {
-      const { error } = await supabase.from('contenido').delete().eq('id_contenido', id_contenido);
-      if (error) throw error;
-      fetchContenido();
-    } catch (e) {
+  const handleEditar = (item: Contenido) => {
+    setForm({
+      nombre: item.nombre ?? '',
+      autor: item.autor ?? '',
+      archivo: item.archivo ?? '',
+      fecha_subida: item.fecha_subida ? item.fecha_subida.substring(0, 16) : '',
+      tipo: item.tipo ?? '',
+      formato: item.formato ?? '',
+    });
+    setEditando(item);
+    setMostrarFormulario(true);
+  };
+
+  const handleEliminar = async (id: number) => {
+    if (!window.confirm("¿Estás seguro de eliminar este contenido?")) return;
+    const { error } = await supabase.from('contenido').delete().eq('id_contenido', id);
+    if (error) {
       alert("Error al eliminar contenido");
+      return;
     }
+    obtenerContenido();
   };
 
   return (
     <div className="admin-prod-container">
       <h2 className="admin-title">Gestión de Contenido</h2>
+
+      {/* Botones debajo del título */}
+      <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+        <button className="admin-add-product-btn" onClick={() => navigate(-1)}>
+          ← Volver
+        </button>
+        <button
+          className="admin-add-product-btn"
+          onClick={() => {
+            limpiarFormulario();
+            setMostrarFormulario(!mostrarFormulario);
+          }}
+        >
+          <span style={{ fontSize: 24, marginRight: 8 }}>＋</span> Agregar Contenido
+        </button>
+      </div>
+
       <div className="admin-prod-list">
-        {contenido.map((cont) => (
-          <div className="admin-prod-card" key={cont.id_contenido}>
+        {contenido.map(item => (
+          <div className="admin-prod-card" key={item.id_contenido}>
+            <div className="admin-prod-img">
+              <img
+                src={item.archivo || "/placeholder.jpg"}
+                alt={item.nombre}
+                onError={e => (e.currentTarget.src = "/placeholder.jpg")}
+              />
+            </div>
             <div className="admin-prod-info">
-              <h4>{cont.nombre}</h4>
-              <p><b>Autor:</b> {cont.autor}</p>
-              <p><b>Descripción:</b> {cont.descripcion}</p>
-              <p><b>Archivo:</b> {cont.archivo}</p>
-              <p><b>Fecha subida:</b> {cont.fecha_subida}</p>
-              <p><b>Tipo:</b> {cont.tipo}</p>
-              <p><b>Formato:</b> {cont.formato}</p>
-              <p><b>Tamaño:</b> {cont.tamanio}</p>
-              <p><b>Calidad:</b> {cont.calidad}</p>
-              <p><b>Precio:</b> {cont.precio}</p>
-              <p><b>ID Admin:</b> {cont.id_admin}</p>
-              <p><b>ID Categoría:</b> {cont.id_categoria}</p>
+              <h4>{item.nombre}</h4>
+              <p><b>Autor:</b> {item.autor}</p>
+              <p><b>Fecha subida:</b> {item.fecha_subida}</p>
+              <p><b>Tipo:</b> {item.tipo}</p>
+              <p><b>Formato:</b> {item.formato}</p>
               <div className="admin-prod-actions">
-                <button className="modificar-btn" onClick={() => handleEditar(cont)}>
-                  Modificar
-                </button>
-                <button className="eliminar-btn" onClick={() => handleEliminar(cont.id_contenido)}>
-                  Eliminar
-                </button>
+                <button className="modificar-btn" onClick={() => handleEditar(item)}>Modificar</button>
+                <button className="eliminar-btn" onClick={() => handleEliminar(item.id_contenido)}>Eliminar</button>
               </div>
             </div>
           </div>
         ))}
       </div>
-      <div className="admin-add-product-container">
-        <button
-          className="admin-add-product-btn"
-          onClick={() => {
-            setEditando(null);
-            setShowForm(!showForm);
-          }}
-        >
-          <span style={{ fontSize: 28, marginRight: 8 }}>+</span> Agregar Contenido
-        </button>
-      </div>
-      {showForm && (
+
+      {mostrarFormulario && (
         <div className="admin-prod-form-modal">
           <div className="admin-prod-form">
-            <h3>{editando ? "Editar contenido" : "Agregar contenido"}</h3>
-            <input
-              name="nombre"
-              value={form.nombre ?? ''}
-              onChange={handleChange}
-              placeholder="Nombre *"
-              required
-            />
-            <input name="autor" value={form.autor ?? ''} onChange={handleChange} placeholder="Autor" />
-            <input name="archivo" value={form.archivo ?? ''} onChange={handleChange} placeholder="Archivo" />
-            <textarea name="descripcion" value={form.descripcion ?? ''} onChange={handleChange} placeholder="Descripción" />
-            <input
-              name="fecha_subida"
-              value={form.fecha_subida ?? ''}
-              onChange={handleChange}
-              placeholder="Fecha subida"
-              type="datetime-local"
-            />
-            <input name="tipo" value={form.tipo ?? ''} onChange={handleChange} placeholder="Tipo" />
-            <input name="formato" value={form.formato ?? ''} onChange={handleChange} placeholder="Formato" />
-            <input
-              name="tamanio"
-              value={form.tamanio ?? ''}
-              onChange={handleChange}
-              placeholder="Tamaño"
-              type="number"
-              step="any"
-            />
-            <input name="calidad" value={form.calidad ?? ''} onChange={handleChange} placeholder="Calidad" />
-            <input
-              name="precio"
-              value={form.precio ?? ''}
-              onChange={handleChange}
-              placeholder="Precio"
-              type="number"
-              required
-              step="any"
-            />
-            <input
-              name="id_admin"
-              value={form.id_admin ?? ''}
-              onChange={handleChange}
-              placeholder="ID Admin"
-              type="number"
-            />
-            <input
-              name="id_categoria"
-              value={form.id_categoria ?? ''}
-              onChange={handleChange}
-              placeholder="ID Categoría"
-              type="number"
-            />
-            <div style={{ marginTop: 12 }}>
+            <button
+              className="volver-btn"
+              onClick={() => {
+                limpiarFormulario();
+                setMostrarFormulario(false);
+              }}
+            >
+              ← Volver
+            </button>
+            <h3 style={{marginBottom:10, color:'var(--celeste)', fontWeight:800, fontSize:'1.35rem'}}>
+              {editando ? "Editar contenido" : "Agregar contenido"}
+            </h3>
+            <input name="nombre" value={form.nombre ?? ''} onChange={handleInputChange} placeholder="Nombre *" required />
+            <input name="autor" value={form.autor ?? ''} onChange={handleInputChange} placeholder="Autor" />
+            <input name="archivo" value={form.archivo ?? ''} onChange={handleInputChange} placeholder="URL o ruta de imagen" />
+            <input name="fecha_subida" type="datetime-local" value={form.fecha_subida ?? ''} onChange={handleInputChange} placeholder="Fecha subida" />
+            <input name="tipo" value={form.tipo ?? ''} onChange={handleInputChange} placeholder="Tipo" />
+            <input name="formato" value={form.formato ?? ''} onChange={handleInputChange} placeholder="Formato" />
+            <div style={{ marginTop: 15, display: 'flex', gap: '16px', justifyContent: 'flex-end' }}>
               {editando ? (
                 <>
-                  <button className="modificar-btn" onClick={handleActualizar}>
-                    Actualizar
-                  </button>
-                  <button
-                    className="eliminar-btn"
-                    style={{ marginLeft: 8 }}
-                    onClick={() => {
-                      setEditando(null);
-                      setShowForm(false);
-                    }}
-                  >
-                    Cancelar
-                  </button>
+                  <button className="modificar-btn" onClick={handleActualizar}>Actualizar</button>
+                  <button className="eliminar-btn" onClick={() => { limpiarFormulario(); setMostrarFormulario(false); }}>Cancelar</button>
                 </>
               ) : (
-                <button className="modificar-btn" onClick={handleAgregar}>
-                  Agregar
-                </button>
+                <button className="modificar-btn" onClick={handleAgregar}>Agregar</button>
               )}
             </div>
           </div>
