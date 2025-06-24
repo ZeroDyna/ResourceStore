@@ -32,19 +32,17 @@ export default function CarruselOfertas() {
     );
   };
 
+  // Devuelve un array de objetos { oferta, indexReal }
   const getVisibleImages = () => {
     return Array.from({ length: visibles }).map((_, i) => {
-      const index = (startIndex + i) % ofertas.length;
-      const oferta = ofertas[index];
+      const indexReal = (startIndex + i) % ofertas.length;
+      const oferta = ofertas[indexReal];
       if (!oferta) {
-        return null; // Evita problemas con ofertas inválidas
+        return null;
       }
-      return oferta;
+      // Devuelve el objeto y el índice real para usarlo como key
+      return { oferta, indexReal };
     });
-  };
-
-  const handleOfertaClick = (productoId: number) => {
-    navigate(`/producto/${productoId}`);
   };
 
   return (
@@ -55,15 +53,13 @@ export default function CarruselOfertas() {
           ←
         </button>
         <div className="ofertas-container">
-          {getVisibleImages().map((oferta, i) => {
-            if (!oferta) {
-              return null;
-            }
+          {getVisibleImages().map((item, i) => {
+            if (!item) return null;
+            const { oferta, indexReal } = item;
             return (
               <div
                 className={`oferta ${i === 0 ? 'recomendacion' : ''}`} // Clase especial para la tarjeta inicial
-                key={oferta.id}
-                //onClick={() => handleOfertaClick(oferta.contenido_id)}
+                key={`${oferta.id}-${indexReal}`}
                 style={{ cursor: 'pointer' }}
               >
                 <img
