@@ -4,6 +4,7 @@ import CarruselOfertas from './CarruselOfertas';
 import { traerContenido } from './traerContenido';
 import { supabase } from './supabaseClient';
 import { agregarAFavoritos } from './Gestor_Favoritos';
+import AdminRecargas from './AdminRecargas'; // Importante: asegúrate que el path sea correcto
 import './CarruselOfertas.css';
 
 // HOC para navegación con react-router v6
@@ -14,7 +15,6 @@ function withNavigation(Component: any) {
   };
 }
 
-// Tipos ajustados a tu nueva base de datos
 type Contenido = {
   id_contenido: number;
   nombre: string;
@@ -24,7 +24,6 @@ type Contenido = {
   tipo?: string;
   formato?: string;
   id_categoria?: number;
-  // Puedes agregar más campos según la tabla contenido
 };
 
 type Categoria = {
@@ -51,6 +50,7 @@ type IAdministradorState = {
   subcategoria: string;
   page: number;
   itemsPerPage: number;
+  vista: string;
 };
 
 class IAdministrador extends React.Component<IAdministradorProps, IAdministradorState> {
@@ -66,6 +66,7 @@ class IAdministrador extends React.Component<IAdministradorProps, IAdministrador
       subcategoria: '',
       page: 1,
       itemsPerPage: 4,
+      vista: 'dashboard',
     };
   }
 
@@ -90,7 +91,6 @@ class IAdministrador extends React.Component<IAdministradorProps, IAdministrador
   };
 
   fetchSubcategorias = async () => {
-    // Subcategorías: aquellas que tienen id_categoria_padre no null
     const { data, error } = await supabase.from('categorias').select('*').not('id_categoria_padre', 'is', null);
     if (error) {
       console.error('Error al obtener subcategorías:', error);
@@ -143,22 +143,18 @@ class IAdministrador extends React.Component<IAdministradorProps, IAdministrador
 
   agregarACarrito = async (id_contenido: number) => {
     try {
-      // Busca id_user en sessionStorage
       const id_user = sessionStorage.getItem('user_id');
       if (!id_user) {
         alert('Debes iniciar sesión');
         return;
       }
-
-      // Buscar o crear carrito
-      const { data: carritoExistente, error: errorBuscar } = await supabase
+      const { data: carritoExistente } = await supabase
         .from('carrito')
         .select('id_carrito')
         .eq('id_user', id_user)
         .maybeSingle();
 
       let carritoId = carritoExistente?.id_carrito;
-
       if (!carritoId) {
         const { data: nuevoCarrito, error: errorCrear } = await supabase
           .from('carrito')
@@ -170,7 +166,6 @@ class IAdministrador extends React.Component<IAdministradorProps, IAdministrador
         carritoId = nuevoCarrito.id_carrito;
       }
 
-      // Insertar detalle en el carrito
       const { error: errorDetalle } = await supabase
         .from('detalle_carrito')
         .insert([{ id_carrito: carritoId, id_contenido }]);
@@ -185,13 +180,14 @@ class IAdministrador extends React.Component<IAdministradorProps, IAdministrador
   };
 
   // ACCIONES DE NAVEGACIÓN ADMIN
-  goToCategorias = () => this.props.navigate('/admin/categorias');
-  goToContenidos = () => this.props.navigate('/admin/productos'); // o '/admin/contenidos' si tienes esa ruta
-  goToOfertas = () => this.props.navigate('/admin/ofertas');
-  goToUsuarios = () => this.props.navigate('/admin/usuarios');
-  goToVentas = () => this.props.navigate('/admin/ventas');
+  goToCategorias = () => this.setState({ vista: 'categorias' });
+  goToContenidos = () => this.setState({ vista: 'contenidos' });
+  goToOfertas = () => this.setState({ vista: 'ofertas' });
+  goToUsuarios = () => this.setState({ vista: 'usuarios' });
+  goToVentas = () => this.setState({ vista: 'ventas' });
+  goToRecargas = () => this.setState({ vista: 'recargas' }); // Cambio aquí
   goToBienvenida = () => this.props.navigate('/bienvenida');
-  goToInicioAdmin = () => this.props.navigate('/IAdministrador');
+  goToInicioAdmin = () => this.setState({ vista: 'dashboard' });
 
   setPage = (page: number) => {
     this.setState({ page });
@@ -207,6 +203,7 @@ class IAdministrador extends React.Component<IAdministradorProps, IAdministrador
       subcategoria,
       page,
       itemsPerPage,
+      vista,
     } = this.state;
 
     const totalPages = Math.ceil(filteredContenidos.length / itemsPerPage);
@@ -221,9 +218,7 @@ class IAdministrador extends React.Component<IAdministradorProps, IAdministrador
             <span>Admin</span>
           </div>
         </header>
-
         <main className="contenido-principal">
-          {/* Sidebar profesional con todas las acciones y navegación */}
           <aside className="sidebar">
             <ul>
               <li onClick={this.goToInicioAdmin}>Inicio Admin</li>
@@ -232,108 +227,115 @@ class IAdministrador extends React.Component<IAdministradorProps, IAdministrador
               <li onClick={this.goToOfertas}>Gestionar Ofertas</li>
               <li onClick={this.goToUsuarios}>Gestionar Usuarios</li>
               <li onClick={this.goToVentas}>Gestionar Ventas</li>
+              <li onClick={this.goToRecargas}>Gestionar Recargas</li>
               <li onClick={this.goToBienvenida}>Vista Usuario</li>
             </ul>
           </aside>
 
-          <section className="recomendaciones">
-            <h3>Explorar Contenidos</h3>
-            <div className="filtros busqueda">
-              <input
-                type="text"
-                id="buscador"
-                placeholder="Buscar contenido..."
-                value={busqueda}
-                onChange={this.handleBusqueda}
-              />
-              <select id="categoria" value={categoria} onChange={this.handleCategoriaChange}>
-                <option value="">Todas las Categorías</option>
-                {categorias.map((cat: Categoria) => (
-                  <option key={cat.id_categoria} value={cat.id_categoria}>{cat.nombre}</option>
-                ))}
-              </select>
-              <select id="subcategoria" value={subcategoria} onChange={this.handleSubcategoriaChange}>
-                <option value="">Todas las Subcategorías</option>
-                {subcategorias.map((subcat: Subcategoria) => (
-                  <option key={subcat.id_categoria} value={subcat.id_categoria}>{subcat.nombre}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="cards">
-              {currentContenidos.map((contenido: Contenido) => (
-                <div className="card" key={contenido.id_contenido}>
-                  <img
-                    src={contenido.archivo || "https://via.placeholder.com/150"}
-                    alt={contenido.nombre}
-                    onClick={() => this.props.navigate(`/admin/contenido/${contenido.id_contenido}`)}
-                    style={{ cursor: 'pointer' }}
+          <section className="recomendaciones" style={{ width: "100%" }}>
+            {/* Render condicional para la vista de recargas */}
+            {vista === 'recargas' ? (
+              <AdminRecargas />
+            ) : (
+              <>
+                <h3>Explorar Contenidos</h3>
+                <div className="filtros busqueda">
+                  <input
+                    type="text"
+                    id="buscador"
+                    placeholder="Buscar contenido..."
+                    value={busqueda}
+                    onChange={this.handleBusqueda}
                   />
-                  <p>{contenido.nombre}</p>
-                  <div className="botones">
-                    <button onClick={() => this.agregarACarrito(contenido.id_contenido)} style={{ marginRight: '1rem' }}>
-                      🛒 
-                    </button>
-                    <button
-                      onClick={async () => {
-                        const id_user = sessionStorage.getItem('user_id');
-                        if (!id_user) {
-                          alert('Debes iniciar sesión');
-                          return;
-                        }
-                        const mensaje = await agregarAFavoritos(contenido.id_contenido, id_user);
-                        alert(mensaje);
-                      }}
-                      style={{ marginRight: '1rem' }}
-                    >
-                      ❤️
-                    </button>
-                  </div>
+                  <select id="categoria" value={categoria} onChange={this.handleCategoriaChange}>
+                    <option value="">Todas las Categorías</option>
+                    {categorias.map((cat: Categoria) => (
+                      <option key={cat.id_categoria} value={cat.id_categoria}>{cat.nombre}</option>
+                    ))}
+                  </select>
+                  <select id="subcategoria" value={subcategoria} onChange={this.handleSubcategoriaChange}>
+                    <option value="">Todas las Subcategorías</option>
+                    {subcategorias.map((subcat: Subcategoria) => (
+                      <option key={subcat.id_categoria} value={subcat.id_categoria}>{subcat.nombre}</option>
+                    ))}
+                  </select>
                 </div>
-              ))}
-            </div>
 
-            <div className="botones-paginacion">
-              <button onClick={() => this.setPage(page - 1)} disabled={page === 1}>
-                &lt;
-              </button>
-              {[...Array(totalPages)].map((_, index) => (
-                <button
-                  key={index}
-                  className={page === index + 1 ? 'activo' : ''}
-                  onClick={() => this.setPage(index + 1)}
-                >
-                  {index + 1}
-                </button>
-              ))}
-              <button onClick={() => this.setPage(page + 1)} disabled={page === totalPages}>
-                &gt;
-              </button>
-            </div>
+                <div className="cards">
+                  {currentContenidos.map((contenido: Contenido) => (
+                    <div className="card" key={contenido.id_contenido}>
+                      <img
+                        src={contenido.archivo || "https://via.placeholder.com/150"}
+                        alt={contenido.nombre}
+                        onClick={() => this.props.navigate(`/admin/contenido/${contenido.id_contenido}`)}
+                        style={{ cursor: 'pointer' }}
+                      />
+                      <p>{contenido.nombre}</p>
+                      <div className="botones">
+                        <button onClick={() => this.agregarACarrito(contenido.id_contenido)} style={{ marginRight: '1rem' }}>
+                          🛒 
+                        </button>
+                        <button
+                          onClick={async () => {
+                            const id_user = sessionStorage.getItem('user_id');
+                            if (!id_user) {
+                              alert('Debes iniciar sesión');
+                              return;
+                            }
+                            const mensaje = await agregarAFavoritos(contenido.id_contenido, id_user);
+                            alert(mensaje);
+                          }}
+                          style={{ marginRight: '1rem' }}
+                        >
+                          ❤️
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
 
-            {/* Sección de Ofertas */}
-            <section style={{ marginTop: "2rem" }}>
-              <div style={{ background: '#fff', padding: '1rem', borderRadius: '8px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: "1rem" }}>
-                  <h4 style={{ margin: 0 }}>Ofertas Destacadas</h4>
-                  <button
-                    style={{
-                      background: '#7c3aed',
-                      color: '#fff',
-                      border: 'none',
-                      padding: '0.5rem 1rem',
-                      borderRadius: '4px',
-                      cursor: 'pointer',
-                      fontWeight: "bold"
-                    }}
-                    onClick={this.goToOfertas}
-                  >
-                    + Gestionar Oferta
+                <div className="botones-paginacion">
+                  <button onClick={() => this.setPage(page - 1)} disabled={page === 1}>
+                    &lt;
+                  </button>
+                  {[...Array(totalPages)].map((_, index) => (
+                    <button
+                      key={index}
+                      className={page === index + 1 ? 'activo' : ''}
+                      onClick={() => this.setPage(index + 1)}
+                    >
+                      {index + 1}
+                    </button>
+                  ))}
+                  <button onClick={() => this.setPage(page + 1)} disabled={page === totalPages}>
+                    &gt;
                   </button>
                 </div>
-                <CarruselOfertas />
-              </div>
-            </section>
+
+                <section style={{ marginTop: "2rem" }}>
+                  <div style={{ background: '#fff', padding: '1rem', borderRadius: '8px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: "1rem" }}>
+                      <h4 style={{ margin: 0 }}>Ofertas Destacadas</h4>
+                      <button
+                        style={{
+                          background: '#7c3aed',
+                          color: '#fff',
+                          border: 'none',
+                          padding: '0.5rem 1rem',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          fontWeight: "bold"
+                        }}
+                        onClick={this.goToOfertas}
+                      >
+                        + Gestionar Oferta
+                      </button>
+                    </div>
+                    <CarruselOfertas />
+                  </div>
+                </section>
+              </>
+            )}
           </section>
 
           <aside className="destacados">

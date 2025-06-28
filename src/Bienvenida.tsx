@@ -15,12 +15,16 @@ function Bienvenida() {
   const [busqueda, setBusqueda] = useState('');
   const [categoria, setCategoria] = useState('');
   const [subcategoria, setSubcategoria] = useState('');
-  const [usuario, setUsuario] = useState<{ nombre_usuario: string, saldo: number } | null>(null);
+  const [usuario, setUsuario] = useState<{ id_user: number, nombre_usuario: string, saldo: number } | null>(null);
   const [page, setPage] = useState(1);
   const [videosDestacados, setVideosDestacados] = useState<any[]>([]);
   const [imagenesDestacadas, setImagenesDestacadas] = useState<any[]>([]);
   const [audiosDestacados, setAudiosDestacados] = useState<any[]>([]);
   const [tipo, setTipo] = useState('');
+  const [showRecarga, setShowRecarga] = useState(false);
+  const [montoRecarga, setMontoRecarga] = useState('');
+  const [recargaError, setRecargaError] = useState('');
+  const [recargaLoading, setRecargaLoading] = useState(false);
   const itemsPerPage = 6;
   const navigate = useNavigate();
 
@@ -96,27 +100,27 @@ function Bienvenida() {
     }
   };
 
-const filtrarContenidos = (query: string, categoria: string, tipo: string) => {
-  let filtered = contenidos;
+  const filtrarContenidos = (query: string, categoria: string, tipo: string) => {
+    let filtered = contenidos;
 
-  if (query) {
-    filtered = filtered.filter((contenido) =>
-      contenido.nombre.toLowerCase().includes(query.toLowerCase()) ||
-      (contenido.autor?.toLowerCase().includes(query.toLowerCase()) ?? false)
-    );
-  }
+    if (query) {
+      filtered = filtered.filter((contenido) =>
+        contenido.nombre.toLowerCase().includes(query.toLowerCase()) ||
+        (contenido.autor?.toLowerCase().includes(query.toLowerCase()) ?? false)
+      );
+    }
 
-  if (categoria) {
-    filtered = filtered.filter((contenido) => contenido.id_categoria === parseInt(categoria));
-  }
+    if (categoria) {
+      filtered = filtered.filter((contenido) => contenido.id_categoria === parseInt(categoria));
+    }
 
-  if (tipo) {
-    filtered = filtered.filter((contenido) => contenido.tipo === tipo);
-  }
+    if (tipo) {
+      filtered = filtered.filter((contenido) => contenido.tipo === tipo);
+    }
 
-  setFilteredContenidos(filtered);
-  setPage(1);
-};
+    setFilteredContenidos(filtered);
+    setPage(1);
+  };
 
   const handleBusqueda = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
@@ -164,15 +168,59 @@ const filtrarContenidos = (query: string, categoria: string, tipo: string) => {
     }
   };
 
+  // RECARGA: Lógica para solicitar recarga
+  const handleSolicitarRecarga = async () => {
+  setRecargaLoading(true);
+  setRecargaError('');
+  if (!usuario) {
+    setRecargaError('Debes iniciar sesión');
+    setRecargaLoading(false);
+    return;
+  }
+  const montoNumber = parseFloat(montoRecarga);
 
+  if (isNaN(montoNumber) || montoNumber <= 0) {
+    setRecargaError('Ingresa un monto válido');
+    setRecargaLoading(false);
+    return;
+  }
 
+  // Opcional: log para depurar
+  console.log({
+    fecha_recarga: new Date().toISOString(),
+    monto: montoNumber,
+    id_admin: null,
+    id_user: Number(usuario.id_user),
+    aceptada: null
+  });
+
+  const { error } = await supabase.from('recarga').insert([
+    {
+      fecha_recarga: new Date().toISOString(), // timestamp
+      monto: montoNumber,                      // numeric
+      id_admin: null,                          // int4 (o el id del admin si aplica)
+      id_user: Number(usuario.id_user),        // int4
+      aceptada: null                           // bool (o true/false)
+    }
+  ]);
+  setRecargaLoading(false);
+  if (error) {
+    setRecargaError('Error al solicitar recarga: ' + error.message);
+    console.error(error);
+  } else {
+    setShowRecarga(false);
+    setMontoRecarga('');
+    alert("Solicitud de recarga enviada.");
+  }
+};
   const totalPages = Math.ceil(filteredContenidos.length / itemsPerPage);
   const startIndex = (page - 1) * itemsPerPage;
   const currentContenidos = filteredContenidos.slice(startIndex, startIndex + itemsPerPage);
 
   return (
     <div className="principal-container">
-      <Header />
+      {/* PASA la prop para que el botón del Header abra el modal */}
+      <Header onRecargarClick={() => setShowRecarga(true)} />
 
       <section>
         <CarruselOfertas />
@@ -188,18 +236,57 @@ const filtrarContenidos = (query: string, categoria: string, tipo: string) => {
           </ul>
         </aside>
 
+        {/* Tarjetita de recarga */}
+        {showRecarga && (
+          <div className="recarga-card" style={{
+            position: 'fixed',
+            zIndex: 10,
+            left: 0, right: 0, top: 0, bottom: 0,
+            background: 'rgba(0,0,0,0.3)',
+            display: 'flex', justifyContent: 'center', alignItems: 'center'
+          }}>
+            <div style={{
+              background: '#fff',
+              padding: '2rem',
+              borderRadius: '10px',
+              boxShadow: '0 4px 32px #999',
+              minWidth: '320px',
+              maxWidth: '90vw'
+            }}>
+              <h3>Solicitar recarga</h3>
+              <label>Monto a recargar:</label>
+              <input
+                type="number"
+                value={montoRecarga}
+                onChange={e => setMontoRecarga(e.target.value)}
+                placeholder="Ingresa el monto"
+                min="1"
+                step="0.01"
+                style={{ margin: '0.5rem 0', width: '100%' }}
+              />
+              {recargaError && <div style={{ color: "red", marginBottom: '.5rem' }}>{recargaError}</div>}
+              <div style={{ marginTop: 10 }}>
+                <button onClick={handleSolicitarRecarga} disabled={recargaLoading}>
+                  {recargaLoading ? "Enviando..." : "Aceptar"}
+                </button>
+                <button onClick={() => setShowRecarga(false)} style={{ marginLeft: 10 }}>
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <section className="recomendaciones">
           <h3>Explorar Contenidos</h3>
           <div className="filtros busqueda">
             <input type="text" placeholder="Buscar contenido..." value={busqueda} onChange={handleBusqueda} />
-
             <select value={categoria} onChange={handleCategoriaChange}>
               <option value="">Todas las Categorías</option>
               {categorias.map((cat) => (
                 <option key={cat.id_categoria} value={cat.id_categoria}>{cat.nombre}</option>
               ))}
             </select>
-
             <select value={tipo} onChange={handleTipoChange}>
               <option value="">Todos los Tipos</option>
               <option value="Video">Video</option>
@@ -254,14 +341,12 @@ const filtrarContenidos = (query: string, categoria: string, tipo: string) => {
               <li key={v.id_contenido}>{v.nombre}</li>
             ))}
           </ul>
-
           <h4>Imágenes Destacadas</h4>
           <ul>
             {imagenesDestacadas.map((i) => (
               <li key={i.id_contenido}>{i.nombre}</li>
             ))}
           </ul>
-
           <h4>Audios Destacados</h4>
           <ul>
             {audiosDestacados.map((a) => (

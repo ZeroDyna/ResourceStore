@@ -1,10 +1,13 @@
-// Header.tsx
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import PerfilUsuario from './PerfilUsuario'; // Asegúrate de que la ruta sea correcta
 import './Header.css';
 
-const Header = () => {
+interface HeaderProps {
+  onRecargarClick: () => void;
+}
+
+const Header: React.FC<HeaderProps> = ({ onRecargarClick }) => {
   const navigate = useNavigate();
   const [usuario, setUsuario] = useState<{ nombre_usuario: string; saldo: number } | null>(null);
   const [mostrarPerfil, setMostrarPerfil] = useState(false);
@@ -37,7 +40,7 @@ const Header = () => {
           </Link>
         </h1>
         <div className="top-info">
-          <button onClick={() => alert('Ir a página de recarga')} className="btn-recargar">
+          <button onClick={onRecargarClick} className="btn-recargar">
             🔄 Recargar
           </button>
           <span>Mi saldo: ${usuario?.saldo?.toFixed(2) || '0.00'}</span>

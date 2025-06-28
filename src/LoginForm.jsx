@@ -24,10 +24,12 @@ function LoginForm() {
     if (admin) {
       const passwordOk = password === admin.contrasenia;
       if (passwordOk) {
-        sessionStorage.setItem('user_role', 'admin');
-        sessionStorage.setItem('user_email', admin.email);
-        sessionStorage.setItem('user_id', admin.id_admin);
-        sessionStorage.setItem('user_nombre', admin.nombre_usuario);
+        // Asegúrate que el campo sea el PK real de admin: id_admin o id
+        localStorage.setItem('admin_id', admin.id_admin.toString());
+        localStorage.setItem('user_role', 'admin');
+        localStorage.setItem('user_email', admin.email);
+        localStorage.setItem('user_id', admin.id_admin);
+        localStorage.setItem('user_nombre', admin.nombre_usuario);
         navigate('/IAdministrador');
         return;
       }
