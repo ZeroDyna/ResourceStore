@@ -5,6 +5,9 @@ import { traerContenido } from './traerContenido';
 import { supabase } from './supabaseClient';
 import { agregarAFavoritos } from './Gestor_Favoritos';
 import AdminRecargas from './AdminRecargas'; // Importante: asegúrate que el path sea correcto
+import AdminCategorias from './AdminCategorias';
+import AdminPromociones from './AdminPromociones';
+import AdminProductos from './AdminProductos';
 import './CarruselOfertas.css';
 
 // HOC para navegación con react-router v6
@@ -225,8 +228,6 @@ class IAdministrador extends React.Component<IAdministradorProps, IAdministrador
               <li onClick={this.goToCategorias}>Gestionar Categorías</li>
               <li onClick={this.goToContenidos}>Gestionar Contenidos</li>
               <li onClick={this.goToOfertas}>Gestionar Ofertas</li>
-              <li onClick={this.goToUsuarios}>Gestionar Usuarios</li>
-              <li onClick={this.goToVentas}>Gestionar Ventas</li>
               <li onClick={this.goToRecargas}>Gestionar Recargas</li>
               <li onClick={this.goToBienvenida}>Vista Usuario</li>
             </ul>
@@ -236,7 +237,12 @@ class IAdministrador extends React.Component<IAdministradorProps, IAdministrador
             {/* Render condicional para la vista de recargas */}
             {vista === 'recargas' ? (
               <AdminRecargas />
-            ) : (
+            ) : vista === 'categorias' ? (
+              <AdminCategorias />
+            ) : vista === 'contenidos' ?(
+              <AdminProductos />
+            ): (
+
               <>
                 <h3>Explorar Contenidos</h3>
                 <div className="filtros busqueda">

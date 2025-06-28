@@ -11,10 +11,8 @@ function Bienvenida() {
   const [contenidos, setContenidos] = useState<any[]>([]);
   const [filteredContenidos, setFilteredContenidos] = useState<any[]>([]);
   const [categorias, setCategorias] = useState<any[]>([]);
-  const [subcategorias, setSubcategorias] = useState<any[]>([]);
   const [busqueda, setBusqueda] = useState('');
   const [categoria, setCategoria] = useState('');
-  const [subcategoria, setSubcategoria] = useState('');
   const [usuario, setUsuario] = useState<{ id_user: number, nombre_usuario: string, saldo: number } | null>(null);
   const [page, setPage] = useState(1);
   const [videosDestacados, setVideosDestacados] = useState<any[]>([]);
@@ -37,8 +35,7 @@ function Bienvenida() {
       const { data: catData } = await supabase.from('categorias').select('*');
       setCategorias(catData || []);
 
-      const { data: subData } = await supabase.from('categorias').select('*');
-      setSubcategorias(subData?.filter(c => c.id_categoria_padre !== null) || []);
+    
     }
 
     fetchDatos();
@@ -100,51 +97,45 @@ function Bienvenida() {
     }
   };
 
-  const filtrarContenidos = (query: string, categoria: string, tipo: string) => {
-    let filtered = contenidos;
+const filtrarContenidos = (query: string, categoria: string, tipo: string) => {
+  let filtered = contenidos;
 
-    if (query) {
-      filtered = filtered.filter((contenido) =>
-        contenido.nombre.toLowerCase().includes(query.toLowerCase()) ||
-        (contenido.autor?.toLowerCase().includes(query.toLowerCase()) ?? false)
-      );
-    }
+  if (query) {
+    filtered = filtered.filter((contenido) =>
+      contenido.nombre.toLowerCase().includes(query.toLowerCase()) ||
+      (contenido.autor?.toLowerCase().includes(query.toLowerCase()) ?? false)
+    );
+  }
 
-    if (categoria) {
-      filtered = filtered.filter((contenido) => contenido.id_categoria === parseInt(categoria));
-    }
+  if (categoria) {
+    filtered = filtered.filter((contenido) => contenido.id_categoria === parseInt(categoria));
+  }
 
-    if (tipo) {
-      filtered = filtered.filter((contenido) => contenido.tipo === tipo);
-    }
+  if (tipo) {
+    filtered = filtered.filter((contenido) => contenido.tipo === tipo);
+  }
 
-    setFilteredContenidos(filtered);
-    setPage(1);
-  };
+  setFilteredContenidos(filtered);
+  setPage(1);
+};
 
-  const handleBusqueda = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const query = e.target.value;
-    setBusqueda(query);
-    filtrarContenidos(query, categoria, subcategoria);
-  };
 
-  const handleCategoriaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selected = e.target.value;
-    setCategoria(selected);
-    filtrarContenidos(busqueda, selected, subcategoria);
-  };
+const handleBusqueda = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const query = e.target.value;
+  setBusqueda(query);
+  filtrarContenidos(query, categoria, tipo);
+};
+const handleCategoriaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const selected = e.target.value;
+  setCategoria(selected);
+  filtrarContenidos(busqueda, selected, tipo);
+};
 
-  const handleSubcategoriaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selected = e.target.value;
-    setSubcategoria(selected);
-    filtrarContenidos(busqueda, categoria, selected);
-  };
-
-  const handleTipoChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selected = e.target.value;
-    setTipo(selected);
-    filtrarContenidos(busqueda, categoria, selected);
-  };
+const handleTipoChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const selected = e.target.value;
+  setTipo(selected);
+  filtrarContenidos(busqueda, categoria, selected);
+};
 
   const handleAgregarAlCarrito = async (contenidoId: number) => {
     try {
@@ -279,9 +270,9 @@ function Bienvenida() {
 
         <section className="recomendaciones">
           <h3>Explorar Contenidos</h3>
-          <div className="filtros busqueda">
+          {<div className="filtros busqueda">
             <input type="text" placeholder="Buscar contenido..." value={busqueda} onChange={handleBusqueda} />
-            <select value={categoria} onChange={handleCategoriaChange}>
+            {/*<select value={categoria} onChange={handleCategoriaChange}>
               <option value="">Todas las Categorías</option>
               {categorias.map((cat) => (
                 <option key={cat.id_categoria} value={cat.id_categoria}>{cat.nombre}</option>
@@ -292,8 +283,8 @@ function Bienvenida() {
               <option value="Video">Video</option>
               <option value="Imagen">Imagen</option>
               <option value="Audio">Audio</option>
-            </select>
-          </div>
+            </select>*/}
+          </div>}
 
           <div className="cards">
             {currentContenidos.map((contenido) => (

@@ -11,17 +11,29 @@ interface Contenido {
   fecha_subida: string;
   tipo: string;
   formato: string;
+  tamanio?: string;
+  calidad?: string;
+  id_admin: number;
+  precio: number;
+  descripcion?: string;
+  id_categoria: number;
 }
 
 export default function AdminContenido() {
   const [contenido, setContenido] = useState<Contenido[]>([]);
-  const [form, setForm] = useState<Omit<Contenido, 'id_contenido'>>({
+  const [categorias, setCategorias] = useState<{ id_categoria: number; nombre: string }[]>([]);
+  const [form, setForm] = useState({
     nombre: '',
     autor: '',
     archivo: '',
-    fecha_subida: '',
-    tipo: '',
+    tipo: 'Imagen',
     formato: '',
+    tamanio: '',
+    calidad: '',
+    id_admin: '',
+    precio: '',
+    descripcion: '',
+    id_categoria: ''
   });
   const [editando, setEditando] = useState<Contenido | null>(null);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
@@ -29,6 +41,7 @@ export default function AdminContenido() {
 
   useEffect(() => {
     obtenerContenido();
+    obtenerCategorias();
   }, []);
 
   const obtenerContenido = async () => {
@@ -40,39 +53,46 @@ export default function AdminContenido() {
     setContenido(data || []);
   };
 
+  const obtenerCategorias = async () => {
+    const { data, error } = await supabase.from('categorias').select('id_categoria, nombre');
+    if (error) {
+      alert("Error al obtener categorías");
+      return;
+    }
+    setCategorias(data || []);
+  };
+
   const limpiarFormulario = () => {
     setForm({
-      nombre: '',
-      autor: '',
-      archivo: '',
-      fecha_subida: '',
-      tipo: '',
-      formato: '',
+      nombre: '', autor: '', archivo: '', tipo: 'Imagen', formato: '', tamanio: '', calidad: '',
+      id_admin: '', precio: '', descripcion: '', id_categoria: ''
     });
     setEditando(null);
   };
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
-  ) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
   };
 
   const prepararDatos = () => {
-    const datos = { ...form };
-    Object.keys(datos).forEach(key => {
-      if (datos[key as keyof typeof datos] === '') {
-        datos[key as keyof typeof datos] = null;
-      }
-    });
+    const datos = {
+      ...form,
+      fecha_subida: new Date().toISOString(),
+      tamanio: form.tamanio || null,
+      calidad: form.calidad || null,
+      descripcion: form.descripcion || null,
+      id_admin: form.id_admin ? parseInt(form.id_admin) : null,
+      precio: form.precio ? parseFloat(form.precio) : null,
+      id_categoria: form.id_categoria ? parseInt(form.id_categoria) : null
+    };
     return datos;
   };
 
   const handleAgregar = async () => {
     const datos = prepararDatos();
-    if (!datos.nombre) {
-      alert("El campo 'nombre' es obligatorio.");
+    if (!datos.nombre || !datos.autor || !datos.archivo || !datos.tipo || !datos.formato || !datos.id_admin || !datos.precio || !datos.id_categoria) {
+      alert("Completa todos los campos obligatorios.");
       return;
     }
     const { error } = await supabase.from('contenido').insert([datos]);
@@ -107,12 +127,17 @@ export default function AdminContenido() {
 
   const handleEditar = (item: Contenido) => {
     setForm({
-      nombre: item.nombre ?? '',
-      autor: item.autor ?? '',
-      archivo: item.archivo ?? '',
-      fecha_subida: item.fecha_subida ? item.fecha_subida.substring(0, 16) : '',
-      tipo: item.tipo ?? '',
-      formato: item.formato ?? '',
+      nombre: item.nombre || '',
+      autor: item.autor || '',
+      archivo: item.archivo || '',
+      tipo: item.tipo || 'Imagen',
+      formato: item.formato || '',
+      tamanio: item.tamanio || '',
+      calidad: item.calidad || '',
+      id_admin: item.id_admin.toString() || '',
+      precio: item.precio.toString() || '',
+      descripcion: item.descripcion || '',
+      id_categoria: item.id_categoria.toString() || '',
     });
     setEditando(item);
     setMostrarFormulario(true);
@@ -132,11 +157,8 @@ export default function AdminContenido() {
     <div className="admin-prod-container">
       <h2 className="admin-title">Gestión de Contenido</h2>
 
-      {/* Botones debajo del título */}
       <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
-        <button className="admin-add-product-btn" onClick={() => navigate(-1)}>
-          ← Volver
-        </button>
+        
         <button
           className="admin-add-product-btn"
           onClick={() => {
@@ -176,24 +198,30 @@ export default function AdminContenido() {
       {mostrarFormulario && (
         <div className="admin-prod-form-modal">
           <div className="admin-prod-form">
-            <button
-              className="volver-btn"
-              onClick={() => {
-                limpiarFormulario();
-                setMostrarFormulario(false);
-              }}
-            >
-              ← Volver
-            </button>
-            <h3 style={{marginBottom:10, color:'var(--celeste)', fontWeight:800, fontSize:'1.35rem'}}>
+            <button className="volver-btn" onClick={() => { limpiarFormulario(); setMostrarFormulario(false); }}>← Volver</button>
+            <h3 style={{ marginBottom: 10, color: 'var(--celeste)', fontWeight: 800, fontSize: '1.35rem' }}>
               {editando ? "Editar contenido" : "Agregar contenido"}
             </h3>
-            <input name="nombre" value={form.nombre ?? ''} onChange={handleInputChange} placeholder="Nombre *" required />
-            <input name="autor" value={form.autor ?? ''} onChange={handleInputChange} placeholder="Autor" />
-            <input name="archivo" value={form.archivo ?? ''} onChange={handleInputChange} placeholder="URL o ruta de imagen" />
-            <input name="fecha_subida" type="datetime-local" value={form.fecha_subida ?? ''} onChange={handleInputChange} placeholder="Fecha subida" />
-            <input name="tipo" value={form.tipo ?? ''} onChange={handleInputChange} placeholder="Tipo" />
-            <input name="formato" value={form.formato ?? ''} onChange={handleInputChange} placeholder="Formato" />
+            <input name="nombre" value={form.nombre} onChange={handleInputChange} placeholder="Nombre *" required />
+            <input name="autor" value={form.autor} onChange={handleInputChange} placeholder="Autor *" />
+            <input name="archivo" value={form.archivo} onChange={handleInputChange} placeholder="URL del archivo *" />
+            <select name="tipo" value={form.tipo} onChange={handleInputChange}>
+              <option value="Imagen">Imagen</option>
+              <option value="Video">Video</option>
+              <option value="Audio">Audio</option>
+            </select>
+            <input name="formato" value={form.formato} onChange={handleInputChange} placeholder="Formato *" />
+            <input name="tamanio" value={form.tamanio} onChange={handleInputChange} placeholder="Tamaño (MB)" />
+            <input name="calidad" value={form.calidad} onChange={handleInputChange} placeholder="Calidad" />
+            <input name="id_admin" value={form.id_admin} onChange={handleInputChange} placeholder="ID Admin *" />
+            <input name="precio" value={form.precio} onChange={handleInputChange} placeholder="Precio *" type="number" />
+            <select name="id_categoria" value={form.id_categoria} onChange={handleInputChange}>
+              <option value="">Selecciona una categoría *</option>
+              {categorias.map(cat => (
+                <option key={cat.id_categoria} value={cat.id_categoria}>{cat.nombre}</option>
+              ))}
+            </select>
+            <textarea name="descripcion" value={form.descripcion} onChange={handleInputChange} placeholder="Descripción (opcional)" />
             <div style={{ marginTop: 15, display: 'flex', gap: '16px', justifyContent: 'flex-end' }}>
               {editando ? (
                 <>
