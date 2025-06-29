@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavigateFunction, useParams, useNavigate, Params } from 'react-router-dom';
 import { supabase } from './supabaseClient';
-import Header from './Header';
+import Header from './C19header';
 import './DetalleProducto.css';
 
 // HOC para pasar navigate y params a una clase
@@ -21,6 +21,7 @@ type Contenido = {
   archivo?: string;
   formato?: string;
   precio?: number;
+  id_categoria?: number;
 };
 
 type DetalleProductoProps = {
@@ -30,6 +31,7 @@ type DetalleProductoProps = {
 
 type DetalleProductoState = {
   contenido: Contenido | null;
+  categoria: string[];
   loading: boolean;
   error: string | null;
 };
@@ -39,6 +41,7 @@ class DetalleProducto extends React.Component<DetalleProductoProps, DetalleProdu
     super(props);
     this.state = {
       contenido: null,
+      categoria: [],
       loading: true,
       error: null,
     };
@@ -56,6 +59,26 @@ class DetalleProducto extends React.Component<DetalleProductoProps, DetalleProdu
       this.fetchContenido();
     }
   }
+
+  buildCategoriaArbol = async (id_categoria: number): Promise<string[]> => {
+    const nombres: string[] = [];
+    let currentId = id_categoria;
+
+    while (currentId) {
+      const { data, error } = await supabase
+        .from('categorias')
+        .select('nombre, id_categoria_padre')
+        .eq('id_categoria', currentId)
+        .single();
+
+      if (error || !data) break;
+
+      nombres.unshift(data.nombre);
+      currentId = data.id_categoria_padre;
+    }
+
+    return nombres;
+  };
 
   fetchContenido = async () => {
     const id = this.props.params.id_contenido || this.props.params.id;
@@ -76,7 +99,16 @@ class DetalleProducto extends React.Component<DetalleProductoProps, DetalleProdu
       if (error || !data) {
         this.setState({ error: 'No se pudo cargar el contenido.', contenido: null });
       } else {
-        this.setState({ contenido: data, error: null });
+        let categorias: string[] = [];
+        if (data.id_categoria) {
+          categorias = await this.buildCategoriaArbol(data.id_categoria);
+        }
+
+        this.setState({
+          contenido: data,
+          categoria: categorias,
+          error: null,
+        });
       }
     } catch (err) {
       this.setState({ error: 'Ocurrió un error inesperado.', contenido: null });
@@ -148,7 +180,7 @@ class DetalleProducto extends React.Component<DetalleProductoProps, DetalleProdu
   };
 
   render() {
-    const { contenido, loading, error } = this.state;
+    const { contenido, categoria, loading, error } = this.state;
     const { navigate } = this.props;
 
     if (loading) return <div className="loading">Cargando recurso...</div>;
@@ -171,8 +203,6 @@ class DetalleProducto extends React.Component<DetalleProductoProps, DetalleProdu
           </aside>
 
           <section className="recomendaciones">
-            
-
             <h2>{contenido.nombre || 'Nombre no disponible'}</h2>
             <img
               src={contenido.archivo || 'https://via.placeholder.com/300'}
@@ -183,6 +213,7 @@ class DetalleProducto extends React.Component<DetalleProductoProps, DetalleProdu
             <p><strong>Autor:</strong> {contenido.autor || 'No disponible'}</p>
             <p><strong>Formato:</strong> {contenido.formato || 'No disponible'}</p>
             <p><strong>Precio:</strong> {contenido.precio || 'No disponible'}</p>
+            <p><strong>Categoría:</strong> {categoria.length > 0 ? categoria.join(' > ') : 'No disponible'}</p>
 
             <div style={{ marginTop: '1.5rem' }}>
               <button
@@ -202,14 +233,14 @@ class DetalleProducto extends React.Component<DetalleProductoProps, DetalleProdu
           </section>
         </main>
 
-      <footer className="footer">
-        <span>© 2025 Resources Store</span>
-        <div className="social">
-          <img src="https://img.icons8.com/ios-filled/50/twitterx--v1.png" alt="X" />
-          <img src="https://img.icons8.com/ios-filled/50/instagram-new--v1.png" alt="Instagram" />
-          <img src="https://img.icons8.com/ios-filled/50/linkedin.png" alt="LinkedIn" />
-        </div>
-      </footer>
+        <footer className="footer">
+          <span>© 2025 Resources Store</span>
+          <div className="social">
+            <img src="https://img.icons8.com/ios-filled/50/twitterx--v1.png" alt="X" />
+            <img src="https://img.icons8.com/ios-filled/50/instagram-new--v1.png" alt="Instagram" />
+            <img src="https://img.icons8.com/ios-filled/50/linkedin.png" alt="LinkedIn" />
+          </div>
+        </footer>
       </div>
     );
   }

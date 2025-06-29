@@ -3,7 +3,7 @@ import './CarruselOfertas.css';
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from './supabaseClient';
-import Header from './Header';
+import Header from './C19header';
 
 export default function Descargas() {
   const [descargados, setDescargados] = React.useState([]);

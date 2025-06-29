@@ -2,7 +2,7 @@ import React from "react";
 import { NavigateFunction, useNavigate } from "react-router-dom";
 import { Link } from 'react-router-dom';
 import { supabase } from "./supabaseClient";
-import Header from './Header';
+import Header from './C19header';
 import RegaloModal from './RegaloModal';
 
 import "./Carrito.css";

@@ -9,7 +9,7 @@ import {
   useSearchParams,
   useNavigationType
 } from "react-router-dom";
-import Header from './Header';
+import Header from './C19header';
 import "./favoritos.css";
 
 // HOC para pasar hooks a la clase

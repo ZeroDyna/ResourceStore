@@ -241,7 +241,9 @@ class IAdministrador extends React.Component<IAdministradorProps, IAdministrador
               <AdminCategorias />
             ) : vista === 'contenidos' ?(
               <AdminProductos />
-            ): (
+            ) : vista === 'ofertas' ? (
+              <AdminPromociones />
+            ): (  
 
               <>
                 <h3>Explorar Contenidos</h3>

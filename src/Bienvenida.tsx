@@ -5,7 +5,7 @@ import { traerContenido } from './traerContenido';
 import { supabase } from './supabaseClient';
 import { agregarAFavoritos } from './Gestor_Favoritos';
 import './CarruselOfertas.css';
-import Header from './Header';
+import Header from './C19header';
 
 function Bienvenida() {
   const [contenidos, setContenidos] = useState<any[]>([]);
@@ -211,7 +211,7 @@ const handleTipoChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
   return (
     <div className="principal-container">
       {/* PASA la prop para que el botón del Header abra el modal */}
-      <Header onRecargarClick={() => setShowRecarga(true)} />
+      <Header F01-onRecargarClick={() => setShowRecarga(true)} />
 
       <section>
         <CarruselOfertas />
