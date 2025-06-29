@@ -211,7 +211,7 @@ const handleTipoChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
   return (
     <div className="principal-container">
       {/* PASA la prop para que el botón del Header abra el modal */}
-      <Header F01-onRecargarClick={() => setShowRecarga(true)} />
+      <Header onRecargarClick={() => setShowRecarga(true)} />
 
       <section>
         <CarruselOfertas />

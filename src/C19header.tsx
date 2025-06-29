@@ -10,10 +10,10 @@ import './Header.css'; // Estilos del encabezado
 
 // Props del componente Header (C19-Header)
 interface HeaderProps {
-  F01onRecargarClick: () => void; // F01-onRecargarClick: Función externa que se ejecuta al hacer clic en el botón de recarga
+  onRecargarClick: () => void; // F01-onRecargarClick: Función externa que se ejecuta al hacer clic en el botón de recarga
 }
 
-const Header: React.FC<HeaderProps> = ({ F01onRecargarClick: F01onRecargarClick }) => {
+const Header: React.FC<HeaderProps> = ({ onRecargarClick: onRecargarClick }) => {
   const navigate = useNavigate();
 
   // Estado que almacena los datos del usuario: nombre y saldo
@@ -56,7 +56,7 @@ const Header: React.FC<HeaderProps> = ({ F01onRecargarClick: F01onRecargarClick 
         {/* Información del usuario y botones de acción */}
         <div className="top-info">
           {/* Botón de recarga - ejecuta función F01-onRecargarClick */}
-          <button onClick={F01onRecargarClick} className="btn-recargar">
+          <button onClick={onRecargarClick} className="btn-recargar">
             🔄 Recargar
           </button>
 
